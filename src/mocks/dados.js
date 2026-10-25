@@ -1,0 +1,38 @@
+const cover = (id) => `https://placehold.co/500x700/223447/f4f7fb/png?text=Carta+${id}`;
+export const cards = Array.from({ length: 24 }, (_, i) => ({
+  id: String(i + 1), name: ['Black Lotus','The One Ring','Lightning Bolt','Mox Pearl','Sheoldred','Omnath','Birds of Paradise','Serra Angel','Pikachu VMAX','Charizard ex','Dark Magician','Blue-Eyes White Dragon','Elsa - Spirit of Winter','Ariel','Kiki-Jiki','Phyrexian Metamorph','Vampire Nocturnus','Teferi','Sol Ring','Ichor Wellspring','Blue-Eyes Alternative','Pikachu Illustrator','Misty','Gambit'][i % 24] + (i > 23 ? ` ${i}` : ''),
+  game: i < 20 ? 'Magic: The Gathering' : i < 22 ? 'Pokémon' : i === 22 ? 'Yu-Gi-Oh!' : 'Lorcana',
+  edition: ['Alpha','The Lord of the Rings','Alpha','Double Masters','Dominaria','Zendikar','Magic 2011','Core Set','Crown Zenith','Obsidian Flames','Blue-Eyes White Dragon','Legend of Blue Eyes','Archazia’s Island','Lorcana'][i % 14],
+  rarity: i % 5 === 0 ? 'Mítica' : i % 3 === 0 ? 'Rara' : 'Incomum', condition: ['NM','SP','MP','HP'][i % 4], price: 12 + i * 17.8, quantity: 1 + (i % 3), image: cover(i + 1), trend: i % 3 === 0 ? -8 : i % 4 === 0 ? 14 : 5,
+}));
+export const stores = [
+  { id:'1', name:'Torres & Dados', distance:'1,2 km', hours:'Hoje, 12h-22h', games:['Magic','Yu-Gi-Oh!'], consign:true },
+  { id:'2', name:'Meeple Station', distance:'2,8 km', hours:'Hoje, 14h-20h', games:['Pokémon','Lorcana'], consign:true },
+  { id:'3', name:'Arena Nexus', distance:'4,1 km', hours:'Hoje, 10h-21h', games:['Magic','Pokémon'], consign:false },
+  { id:'4', name:'Spellbound Café', distance:'5,6 km', hours:'Hoje, 11h-23h', games:['Magic','Lorcana'], consign:true },
+  { id:'5', name:'The Collector Vault', distance:'8,2 km', hours:'Amanhã, 09h-18h', games:['Yu-Gi-Oh!','Pokémon'], consign:false },
+];
+export const events = [
+  { id:'1', title:'Friday Night Magic', store:'Torres & Dados', game:'Magic: The Gathering', date:'SEX 24 OUT · 19:00' },
+  { id:'2', title:'Draft de expansão', store:'Meeple Station', game:'Lorcana', date:'SÁB 25 OUT · 14:00' },
+  { id:'3', title:'Liga Pokémon', store:'Arena Nexus', game:'Pokémon', date:'DOM 26 OUT · 10:30' },
+  { id:'4', title:'Yugi Clash', store:'The Collector Vault', game:'Yu-Gi-Oh!', date:'QUI 30 OUT · 19:30' },
+  { id:'5', title:'Noite de Commander', store:'Spellbound Café', game:'Magic: The Gathering', date:'SEX 31 OUT · 20:00' },
+  { id:'6', title:'Learn to Play Lorcana', store:'Meeple Station', game:'Lorcana', date:'DOM 2 NOV · 16:00' },
+];
+export const anuncios = [
+  { id:'101', cardId:'1', title:'Black Lotus', condition:'NM', price:420, qty:1, status:'Ativo' },
+  { id:'102', cardId:'10', title:'Charizard ex', condition:'SP', price:185, qty:2, status:'Vendido' },
+  { id:'103', cardId:'12', title:'Blue-Eyes White Dragon', condition:'MP', price:38, qty:1, status:'Pausado' },
+];
+export const consignacoes = [{ id:'201', card:'The One Ring', status:'À venda', step:3, repasse:310 }];
+export const propostas = [
+  { id:'301', direction:'recebida', card:'Sheoldred', offer:92, from:'Nina' },
+  { id:'302', direction:'enviada', card:'Pikachu VMAX', offer:55, from:'Caio' },
+];
+export const notifications = [
+  { id:'n1', type:'Propostas', title:'Nova proposta em Sheoldred', time:'Agora', unread:true },
+  { id:'n2', type:'Vendas', title:'Black Lotus vendido', time:'Há 2h', unread:true },
+  { id:'n3', type:'Repasses', title:'Repasse de R$310 aprovado', time:'Ontem', unread:false },
+  { id:'n4', type:'Alertas de preço', title:'Charizard ex caiu 8%', time:'Ontem', unread:false },
+];
