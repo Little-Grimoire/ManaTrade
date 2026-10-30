@@ -1,2 +1,115 @@
-import Head from 'expo-router/head';import { useEffect,useState } from 'react';import { Pressable,ScrollView,StyleSheet,Text,View } from 'react-native';import Cabecalho from '../src/components/Cabecalho';import EstadoErro from '../src/components/EstadoErro';import EstadoVazio from '../src/components/EstadoVazio';import Skeleton from '../src/components/Skeleton';import { getNotifications } from '../src/services/api';import { theme } from '../src/theme';
-export default function Notificacoes(){const [items,setItems]=useState([]);const [status,setStatus]=useState('loading');const load=async()=>{setStatus('loading');try{setItems(await getNotifications());setStatus('ready')}catch{setStatus('error')}};useEffect(()=>{load()},[]);if(status==='loading')return <View style={styles.page}><Skeleton height={260}/></View>;if(status==='error')return <EstadoErro onRetry={load}/>;const types=[...new Set(items.map((item)=>item.type))];return <ScrollView contentContainerStyle={styles.page}><Head><title>Notificações | ManaTrade</title></Head><Cabecalho title="Notificações" back action={<Pressable style={styles.mark} onPress={()=>setItems((current)=>current.map((item)=>({...item,unread:false})))}><Text style={styles.markText}>Marcar todas como lidas</Text></Pressable>}/>{items.length?types.map((type)=><View key={type} style={styles.group}><Text style={styles.groupTitle}>{type}</Text>{items.filter((item)=>item.type===type).map((item)=><Pressable key={item.id} style={[styles.item,item.unread&&styles.unread]} onPress={()=>setItems((current)=>current.map((entry)=>entry.id===item.id?{...entry,unread:false}:entry))}><View style={styles.copy}><Text style={styles.title}>{item.title}</Text><Text style={styles.time}>{item.time}</Text></View>{item.unread&&<View style={styles.dot}/>}</Pressable>)}</View>):<EstadoVazio titulo="Sem notificações"/>}</ScrollView>}const styles=StyleSheet.create({page:{flexGrow:1,maxWidth:1320,width:'100%',alignSelf:'center',padding:theme.spacing.lg},mark:{minHeight:44,justifyContent:'center'},markText:{color:theme.colors.accent,fontWeight:theme.typography.weight.bold},group:{marginBottom:theme.spacing.lg},groupTitle:{color:theme.colors.textMuted,fontSize:theme.typography.small,fontWeight:theme.typography.weight.bold,marginBottom:theme.spacing.sm},item:{minHeight:68,flexDirection:'row',alignItems:'center',padding:theme.spacing.md,borderBottomWidth:1,borderBottomColor:theme.colors.border},unread:{backgroundColor:theme.colors.surface},copy:{flex:1},title:{color:theme.colors.text,fontWeight:theme.typography.weight.bold},time:{color:theme.colors.textMuted,marginTop:3},dot:{width:8,height:8,borderRadius:4,backgroundColor:theme.colors.accent}});
+import Head from 'expo-router/head';
+import { useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Cabecalho from '../src/components/Cabecalho';
+import EstadoErro from '../src/components/EstadoErro';
+import EstadoVazio from '../src/components/EstadoVazio';
+import Skeleton from '../src/components/Skeleton';
+import { getNotifications } from '../src/services/api';
+import { theme } from '../src/theme';
+export default function Notificacoes() {
+  const [items, setItems] = useState([]);
+  const [status, setStatus] = useState('loading');
+  const load = async () => {
+    setStatus('loading');
+    try {
+      setItems(await getNotifications());
+      setStatus('ready');
+    } catch {
+      setStatus('error');
+    }
+  };
+  useEffect(() => {
+    load();
+  }, []);
+  if (status === 'loading')
+    return (
+      <View style={styles.page}>
+        <Skeleton height={260} />
+      </View>
+    );
+  if (status === 'error') return <EstadoErro onRetry={load} />;
+  const types = [...new Set(items.map((item) => item.type))];
+  return (
+    <ScrollView contentContainerStyle={styles.page}>
+      <Head>
+        <title>Notificações | ManaTrade</title>
+      </Head>
+      <Cabecalho
+        title="Notificações"
+        back
+        action={
+          <Pressable
+            style={styles.mark}
+            onPress={() =>
+              setItems((current) => current.map((item) => ({ ...item, unread: false })))
+            }
+          >
+            <Text style={styles.markText}>Marcar todas como lidas</Text>
+          </Pressable>
+        }
+      />
+      {items.length ? (
+        types.map((type) => (
+          <View key={type} style={styles.group}>
+            <Text style={styles.groupTitle}>{type}</Text>
+            {items
+              .filter((item) => item.type === type)
+              .map((item) => (
+                <Pressable
+                  key={item.id}
+                  style={[styles.item, item.unread && styles.unread]}
+                  onPress={() =>
+                    setItems((current) =>
+                      current.map((entry) =>
+                        entry.id === item.id ? { ...entry, unread: false } : entry,
+                      ),
+                    )
+                  }
+                >
+                  <View style={styles.copy}>
+                    <Text style={styles.title}>{item.title}</Text>
+                    <Text style={styles.time}>{item.time}</Text>
+                  </View>
+                  {item.unread && <View style={styles.dot} />}
+                </Pressable>
+              ))}
+          </View>
+        ))
+      ) : (
+        <EstadoVazio titulo="Sem notificações" />
+      )}
+    </ScrollView>
+  );
+}
+const styles = StyleSheet.create({
+  page: {
+    flexGrow: 1,
+    maxWidth: 1320,
+    width: '100%',
+    alignSelf: 'center',
+    padding: theme.spacing.lg,
+  },
+  mark: { minHeight: 44, justifyContent: 'center' },
+  markText: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold },
+  group: { marginBottom: theme.spacing.lg },
+  groupTitle: {
+    color: theme.colors.textMuted,
+    fontSize: theme.typography.small,
+    fontWeight: theme.typography.weight.bold,
+    marginBottom: theme.spacing.sm,
+  },
+  item: {
+    minHeight: 68,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  unread: { backgroundColor: theme.colors.surface },
+  copy: { flex: 1 },
+  title: { color: theme.colors.text, fontWeight: theme.typography.weight.bold },
+  time: { color: theme.colors.textMuted, marginTop: 3 },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.colors.accent },
+});

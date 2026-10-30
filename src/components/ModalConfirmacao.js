@@ -1,7 +1,65 @@
 import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { theme } from '../theme';
 
-export default function ModalConfirmacao({ visible, title, message, confirmLabel = 'Confirmar', onConfirm, onCancel }) {
-  return <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}><Pressable style={styles.backdrop} onPress={onCancel}><Pressable style={styles.dialog} onPress={(event) => event.stopPropagation?.()}><Text style={styles.title}>{title}</Text><Text style={styles.message}>{message}</Text><View style={styles.actions}><Pressable accessibilityRole="button" style={styles.cancel} onPress={onCancel}><Text style={styles.cancelText}>Cancelar</Text></Pressable><Pressable accessibilityRole="button" style={styles.confirm} onPress={onConfirm}><Text style={styles.confirmText}>{confirmLabel}</Text></Pressable></View></Pressable></Pressable></Modal>;
+export default function ModalConfirmacao({
+  visible,
+  title,
+  message,
+  confirmLabel = 'Confirmar',
+  onConfirm,
+  onCancel,
+}) {
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
+      <Pressable style={styles.backdrop} onPress={onCancel}>
+        <Pressable style={styles.dialog} onPress={(event) => event.stopPropagation?.()}>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.message}>{message}</Text>
+          <View style={styles.actions}>
+            <Pressable accessibilityRole="button" style={styles.cancel} onPress={onCancel}>
+              <Text style={styles.cancelText}>Cancelar</Text>
+            </Pressable>
+            <Pressable accessibilityRole="button" style={styles.confirm} onPress={onConfirm}>
+              <Text style={styles.confirmText}>{confirmLabel}</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
 }
-const styles = StyleSheet.create({ backdrop: { flex: 1, backgroundColor: '#000b', alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg }, dialog: { width: '100%', maxWidth: 440, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border, padding: theme.spacing.xl }, title: { color: theme.colors.text, fontSize: theme.typography.h2, fontWeight: theme.typography.weight.bold }, message: { color: theme.colors.textMuted, lineHeight: 22, marginVertical: theme.spacing.lg }, actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: theme.spacing.sm }, cancel: { minHeight: 44, justifyContent: 'center', paddingHorizontal: theme.spacing.lg }, confirm: { minHeight: 44, justifyContent: 'center', borderRadius: theme.radius.sm, backgroundColor: theme.colors.danger, paddingHorizontal: theme.spacing.lg }, cancelText: { color: theme.colors.text, fontWeight: theme.typography.weight.bold }, confirmText: { color: '#fff', fontWeight: theme.typography.weight.bold } });
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: '#000b',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: theme.spacing.lg,
+  },
+  dialog: {
+    width: '100%',
+    maxWidth: 440,
+    borderRadius: theme.radius.lg,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: theme.spacing.xl,
+  },
+  title: {
+    color: theme.colors.text,
+    fontSize: theme.typography.h2,
+    fontWeight: theme.typography.weight.bold,
+  },
+  message: { color: theme.colors.textMuted, lineHeight: 22, marginVertical: theme.spacing.lg },
+  actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: theme.spacing.sm },
+  cancel: { minHeight: 44, justifyContent: 'center', paddingHorizontal: theme.spacing.lg },
+  confirm: {
+    minHeight: 44,
+    justifyContent: 'center',
+    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.danger,
+    paddingHorizontal: theme.spacing.lg,
+  },
+  cancelText: { color: theme.colors.text, fontWeight: theme.typography.weight.bold },
+  confirmText: { color: '#fff', fontWeight: theme.typography.weight.bold },
+});

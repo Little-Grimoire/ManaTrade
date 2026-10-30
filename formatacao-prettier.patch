@@ -1,0 +1,3247 @@
+From a8eef755a40ae90cab2d611e7b8213eb997448c6 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 30 Oct 2026 03:29:23 +0000
+Subject: [PATCH] =?UTF-8?q?Formatar=20c=C3=B3digo=20JavaScript=20com=20Pre?=
+ =?UTF-8?q?ttier?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Quebra as linhas longas e corrige a indentação de todos os arquivos .js,
+sem alterar o comportamento: a saída compilada pelo Babel é idêntica
+antes e depois (a única diferença é " " virar ' ' em Estados.js).
+
+Adiciona .prettierrc.json com o estilo já usado no projeto (aspas
+simples, ponto e vírgula, 100 colunas) para manter a formatação.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_018PbG6vDStw3HU9RcwPDJw8
+---
+ .prettierrc.json                   |   7 +
+ app/(tabs)/_layout.js              | 127 +++++++++++++++++-
+ app/(tabs)/biblioteca.js           | 133 ++++++++++++++++++-
+ app/(tabs)/desejos.js              |  77 ++++++++++-
+ app/(tabs)/index.js                | 163 ++++++++++++++++++++++--
+ app/(tabs)/manuscan.js             | 179 +++++++++++++++++++++++++-
+ app/(tabs)/perfil.js               | 120 ++++++++++++++++-
+ app/_layout.js                     |  16 ++-
+ app/anuncio/[id].js                | 108 +++++++++++++++-
+ app/auth/cadastro.js               | 123 +++++++++++++++++-
+ app/auth/login.js                  |  90 ++++++++++++-
+ app/carta/[id].js                  | 115 ++++++++++++++++-
+ app/comunidade.js                  | 134 ++++++++++++++++++-
+ app/configuracoes.js               | 129 ++++++++++++++++++-
+ app/consignacoes.js                |  99 ++++++++++++++-
+ app/loja/[id].js                   |  66 +++++++++-
+ app/lojas.js                       |  91 ++++++++++++-
+ app/meus-anuncios.js               |  64 +++++++++-
+ app/notificacoes.js                | 117 ++++++++++++++++-
+ app/propostas.js                   |  95 +++++++++++++-
+ src/components/BotaoPrimario.js    |  32 ++++-
+ src/components/BotaoSecundario.js  |  34 ++++-
+ src/components/Cabecalho.js        |  25 +++-
+ src/components/CardCapa.js         |  49 ++++++-
+ src/components/ChipFiltro.js       |  31 ++++-
+ src/components/Estados.js          |  63 ++++++++-
+ src/components/ListaItem.js        |  40 +++++-
+ src/components/Mapa.js             |  21 ++-
+ src/components/Mapa.web.js         |  44 ++++++-
+ src/components/ModalConfirmacao.js |  64 +++++++++-
+ src/components/PrecoTag.js         |  15 ++-
+ src/components/SeloCondicao.js     |  24 +++-
+ src/contexts/AuthContext.js        |  13 +-
+ src/hooks/useBreakpoint.js         |   8 +-
+ src/mocks/dados.js                 | 198 +++++++++++++++++++++++++----
+ src/services/api.js                |  45 +++++--
+ src/services/storage.web.js        |  10 +-
+ src/theme.js                       |  34 ++++-
+ 38 files changed, 2658 insertions(+), 145 deletions(-)
+ create mode 100644 .prettierrc.json
+
+diff --git a/.prettierrc.json b/.prettierrc.json
+new file mode 100644
+index 0000000..a071667
+--- /dev/null
++++ b/.prettierrc.json
+@@ -0,0 +1,7 @@
++{
++  "singleQuote": true,
++  "semi": true,
++  "printWidth": 100,
++  "trailingComma": "all",
++  "arrowParens": "always"
++}
+diff --git a/app/(tabs)/_layout.js b/app/(tabs)/_layout.js
+index 7b964c2..4ecbf89 100644
+--- a/app/(tabs)/_layout.js
++++ b/app/(tabs)/_layout.js
+@@ -15,10 +15,131 @@ const tabs = [
+ export default function TabLayout() {
+   const { isWide } = useBreakpoint();
+   const router = useRouter();
+-  return <Tabs screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: theme.colors.background }, tabBarActiveTintColor: theme.colors.accent, tabBarInactiveTintColor: theme.colors.textMuted, tabBarStyle: isWide ? { display: 'none' } : { height: 72, backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }, tabBarItemStyle: { minWidth: 64 } }} tabBar={isWide ? (props) => <Sidebar state={props.state} router={router} /> : undefined}>{tabs.map((tab) => <Tabs.Screen key={tab.name} name={tab.name} options={{ title: tab.title, tabBarLabel: tab.title, tabBarIcon: ({ color, size }) => <Ionicons name={tab.icon} size={tab.center ? 30 : size} color={color} />, tabBarAccessibilityLabel: tab.title }} />)}</Tabs>;
++  return (
++    <Tabs
++      screenOptions={{
++        headerShown: false,
++        sceneStyle: { backgroundColor: theme.colors.background },
++        tabBarActiveTintColor: theme.colors.accent,
++        tabBarInactiveTintColor: theme.colors.textMuted,
++        tabBarStyle: isWide
++          ? { display: 'none' }
++          : {
++              height: 72,
++              backgroundColor: theme.colors.surface,
++              borderTopColor: theme.colors.border,
++            },
++        tabBarItemStyle: { minWidth: 64 },
++      }}
++      tabBar={isWide ? (props) => <Sidebar state={props.state} router={router} /> : undefined}
++    >
++      {tabs.map((tab) => (
++        <Tabs.Screen
++          key={tab.name}
++          name={tab.name}
++          options={{
++            title: tab.title,
++            tabBarLabel: tab.title,
++            tabBarIcon: ({ color, size }) => (
++              <Ionicons name={tab.icon} size={tab.center ? 30 : size} color={color} />
++            ),
++            tabBarAccessibilityLabel: tab.title,
++          }}
++        />
++      ))}
++    </Tabs>
++  );
+ }
+ 
+ function Sidebar({ state, router }) {
+-  return <View style={styles.sidebar}><Pressable style={styles.brand} onPress={() => router.replace('/(tabs)')}><Text style={styles.brandText}>ManaTrade</Text></Pressable>{tabs.map((tab) => { const selected = state.routes[state.index]?.name === tab.name; return <Pressable key={tab.name} accessibilityRole="button" accessibilityLabel={tab.title} onPress={() => router.replace(`/(tabs)/${tab.name === 'index' ? '' : tab.name}`)} style={({ hovered, pressed }) => [styles.item, tab.center && styles.scan, selected && styles.selected, hovered && styles.hover, pressed && styles.pressed]}><Ionicons name={tab.icon} size={tab.center ? 28 : 22} color={tab.center ? theme.colors.background : selected ? theme.colors.accent : theme.colors.textMuted} /><Text style={[styles.label, tab.center && styles.scanLabel, selected && styles.selectedLabel]}>{tab.title}</Text></Pressable>; })}</View>;
++  return (
++    <View style={styles.sidebar}>
++      <Pressable style={styles.brand} onPress={() => router.replace('/(tabs)')}>
++        <Text style={styles.brandText}>ManaTrade</Text>
++      </Pressable>
++      {tabs.map((tab) => {
++        const selected = state.routes[state.index]?.name === tab.name;
++        return (
++          <Pressable
++            key={tab.name}
++            accessibilityRole="button"
++            accessibilityLabel={tab.title}
++            onPress={() => router.replace(`/(tabs)/${tab.name === 'index' ? '' : tab.name}`)}
++            style={({ hovered, pressed }) => [
++              styles.item,
++              tab.center && styles.scan,
++              selected && styles.selected,
++              hovered && styles.hover,
++              pressed && styles.pressed,
++            ]}
++          >
++            <Ionicons
++              name={tab.icon}
++              size={tab.center ? 28 : 22}
++              color={
++                tab.center
++                  ? theme.colors.background
++                  : selected
++                    ? theme.colors.accent
++                    : theme.colors.textMuted
++              }
++            />
++            <Text
++              style={[
++                styles.label,
++                tab.center && styles.scanLabel,
++                selected && styles.selectedLabel,
++              ]}
++            >
++              {tab.title}
++            </Text>
++          </Pressable>
++        );
++      })}
++    </View>
++  );
+ }
+-const styles = StyleSheet.create({ sidebar: { position: 'absolute', zIndex: 10, left: 0, top: 0, bottom: 0, width: 118, paddingVertical: theme.spacing.lg, alignItems: 'center', gap: theme.spacing.sm, backgroundColor: theme.colors.surface, borderRightWidth: 1, borderRightColor: theme.colors.border }, brand: { height: 44, justifyContent: 'center', marginBottom: theme.spacing.md }, brandText: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold, fontSize: theme.typography.h3 }, item: { width: 94, minHeight: 62, alignItems: 'center', justifyContent: 'center', gap: 4, borderRadius: theme.radius.sm }, selected: { backgroundColor: '#223447' }, hover: { backgroundColor: '#2a4055' }, pressed: { opacity: 0.8 }, label: { color: theme.colors.textMuted, fontSize: 12 }, selectedLabel: { color: theme.colors.accent }, scan: { width: 82, height: 82, minHeight: 82, borderRadius: 41, backgroundColor: theme.colors.accent, marginVertical: theme.spacing.sm }, scanLabel: { color: theme.colors.background, fontWeight: theme.typography.weight.bold } });
++const styles = StyleSheet.create({
++  sidebar: {
++    position: 'absolute',
++    zIndex: 10,
++    left: 0,
++    top: 0,
++    bottom: 0,
++    width: 118,
++    paddingVertical: theme.spacing.lg,
++    alignItems: 'center',
++    gap: theme.spacing.sm,
++    backgroundColor: theme.colors.surface,
++    borderRightWidth: 1,
++    borderRightColor: theme.colors.border,
++  },
++  brand: { height: 44, justifyContent: 'center', marginBottom: theme.spacing.md },
++  brandText: {
++    color: theme.colors.accent,
++    fontWeight: theme.typography.weight.bold,
++    fontSize: theme.typography.h3,
++  },
++  item: {
++    width: 94,
++    minHeight: 62,
++    alignItems: 'center',
++    justifyContent: 'center',
++    gap: 4,
++    borderRadius: theme.radius.sm,
++  },
++  selected: { backgroundColor: '#223447' },
++  hover: { backgroundColor: '#2a4055' },
++  pressed: { opacity: 0.8 },
++  label: { color: theme.colors.textMuted, fontSize: 12 },
++  selectedLabel: { color: theme.colors.accent },
++  scan: {
++    width: 82,
++    height: 82,
++    minHeight: 82,
++    borderRadius: 41,
++    backgroundColor: theme.colors.accent,
++    marginVertical: theme.spacing.sm,
++  },
++  scanLabel: { color: theme.colors.background, fontWeight: theme.typography.weight.bold },
++});
+diff --git a/app/(tabs)/biblioteca.js b/app/(tabs)/biblioteca.js
+index 50c7127..94249a5 100644
+--- a/app/(tabs)/biblioteca.js
++++ b/app/(tabs)/biblioteca.js
+@@ -13,11 +13,130 @@ import { useBreakpoint } from '../../src/hooks/useBreakpoint';
+ import { theme } from '../../src/theme';
+ 
+ export default function Biblioteca() {
+-  const [cards, setCards] = useState([]); const [status, setStatus] = useState('loading'); const [game, setGame] = useState('Magic'); const [view, setView] = useState('grade'); const [sort, setSort] = useState('name'); const { columns, isWide } = useBreakpoint();
+-  const load = async () => { setStatus('loading'); try { setCards(await getCards()); setStatus('ready'); } catch { setStatus('error'); } };
+-  useEffect(() => { load(); }, []);
+-  const prefix = game === 'Magic' ? 'Magic' : game; const visible = cards.filter((card) => card.game.startsWith(prefix)).sort((a,b) => sort === 'price' ? b.price-a.price : a.name.localeCompare(b.name));
+-  if (status === 'loading') return <View style={styles.page}><Skeleton height={72} /><Skeleton height={260} /></View>; if (status === 'error') return <EstadoErro onRetry={load} />;
+-  return <ScrollView contentContainerStyle={[styles.page, isWide && styles.wide]}><Head><title>Biblioteca | ManaTrade</title></Head><Cabecalho title="Biblioteca" subtitle={`Valor estimado: R$ ${visible.reduce((sum, card) => sum + card.price, 0).toFixed(2)}`} /><View style={styles.row}>{['Magic','Pokémon','Yu-Gi-Oh!','Lorcana'].map((item) => <ChipFiltro key={item} label={item} active={game === item} onPress={() => setGame(item)} />)}</View><View style={styles.toolbar}><Pressable onPress={() => setView(view === 'grade' ? 'lista' : 'grade')} style={styles.control}><Text style={styles.controlText}>{view === 'grade' ? 'Lista' : 'Grade'}</Text></Pressable><Pressable onPress={() => setSort(sort === 'name' ? 'price' : 'name')} style={styles.control}><Text style={styles.controlText}>Ordenar: {sort === 'name' ? 'Nome' : 'Preço'}</Text></Pressable></View>{visible.length ? <><View style={styles.progress}><Text style={styles.progressText}>The Lord of the Rings · 42/295 cartas</Text><View style={styles.track}><View style={styles.fill} /></View></View>{view === 'grade' ? <View style={[styles.grid, { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }]}>{visible.map((card) => <CardCapa key={card.id} item={card} />)}</View> : visible.map((card) => <ListaItem key={card.id} title={card.name} subtitle={`${card.edition} · ${card.condition}`} meta={`R$ ${card.price.toFixed(2)}`} />)}</> : <EstadoVazio titulo="Coleção vazia" texto="Adicione cartas pelo ManaScan." />}</ScrollView>;
++  const [cards, setCards] = useState([]);
++  const [status, setStatus] = useState('loading');
++  const [game, setGame] = useState('Magic');
++  const [view, setView] = useState('grade');
++  const [sort, setSort] = useState('name');
++  const { columns, isWide } = useBreakpoint();
++  const load = async () => {
++    setStatus('loading');
++    try {
++      setCards(await getCards());
++      setStatus('ready');
++    } catch {
++      setStatus('error');
++    }
++  };
++  useEffect(() => {
++    load();
++  }, []);
++  const prefix = game === 'Magic' ? 'Magic' : game;
++  const visible = cards
++    .filter((card) => card.game.startsWith(prefix))
++    .sort((a, b) => (sort === 'price' ? b.price - a.price : a.name.localeCompare(b.name)));
++  if (status === 'loading')
++    return (
++      <View style={styles.page}>
++        <Skeleton height={72} />
++        <Skeleton height={260} />
++      </View>
++    );
++  if (status === 'error') return <EstadoErro onRetry={load} />;
++  return (
++    <ScrollView contentContainerStyle={[styles.page, isWide && styles.wide]}>
++      <Head>
++        <title>Biblioteca | ManaTrade</title>
++      </Head>
++      <Cabecalho
++        title="Biblioteca"
++        subtitle={`Valor estimado: R$ ${visible.reduce((sum, card) => sum + card.price, 0).toFixed(2)}`}
++      />
++      <View style={styles.row}>
++        {['Magic', 'Pokémon', 'Yu-Gi-Oh!', 'Lorcana'].map((item) => (
++          <ChipFiltro
++            key={item}
++            label={item}
++            active={game === item}
++            onPress={() => setGame(item)}
++          />
++        ))}
++      </View>
++      <View style={styles.toolbar}>
++        <Pressable
++          onPress={() => setView(view === 'grade' ? 'lista' : 'grade')}
++          style={styles.control}
++        >
++          <Text style={styles.controlText}>{view === 'grade' ? 'Lista' : 'Grade'}</Text>
++        </Pressable>
++        <Pressable
++          onPress={() => setSort(sort === 'name' ? 'price' : 'name')}
++          style={styles.control}
++        >
++          <Text style={styles.controlText}>Ordenar: {sort === 'name' ? 'Nome' : 'Preço'}</Text>
++        </Pressable>
++      </View>
++      {visible.length ? (
++        <>
++          <View style={styles.progress}>
++            <Text style={styles.progressText}>The Lord of the Rings · 42/295 cartas</Text>
++            <View style={styles.track}>
++              <View style={styles.fill} />
++            </View>
++          </View>
++          {view === 'grade' ? (
++            <View
++              style={[styles.grid, { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }]}
++            >
++              {visible.map((card) => (
++                <CardCapa key={card.id} item={card} />
++              ))}
++            </View>
++          ) : (
++            visible.map((card) => (
++              <ListaItem
++                key={card.id}
++                title={card.name}
++                subtitle={`${card.edition} · ${card.condition}`}
++                meta={`R$ ${card.price.toFixed(2)}`}
++              />
++            ))
++          )}
++        </>
++      ) : (
++        <EstadoVazio titulo="Coleção vazia" texto="Adicione cartas pelo ManaScan." />
++      )}
++    </ScrollView>
++  );
+ }
+-const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 1320, alignSelf: 'center', width: '100%', padding: theme.spacing.lg }, wide: { paddingLeft: 142 }, row: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }, toolbar: { flexDirection: 'row', gap: theme.spacing.sm, marginVertical: theme.spacing.lg }, control: { minHeight: 44, justifyContent: 'center', borderRadius: theme.radius.sm, borderWidth: 1, borderColor: theme.colors.border, paddingHorizontal: theme.spacing.md }, controlText: { color: theme.colors.text }, progress: { marginBottom: theme.spacing.lg }, progressText: { color: theme.colors.textMuted, marginBottom: theme.spacing.sm }, track: { height: 8, borderRadius: theme.radius.pill, backgroundColor: theme.colors.border, overflow: 'hidden' }, fill: { width: '14%', height: '100%', backgroundColor: theme.colors.accent }, grid: { display: 'grid', gap: theme.spacing.lg } });
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 1320,
++    alignSelf: 'center',
++    width: '100%',
++    padding: theme.spacing.lg,
++  },
++  wide: { paddingLeft: 142 },
++  row: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
++  toolbar: { flexDirection: 'row', gap: theme.spacing.sm, marginVertical: theme.spacing.lg },
++  control: {
++    minHeight: 44,
++    justifyContent: 'center',
++    borderRadius: theme.radius.sm,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    paddingHorizontal: theme.spacing.md,
++  },
++  controlText: { color: theme.colors.text },
++  progress: { marginBottom: theme.spacing.lg },
++  progressText: { color: theme.colors.textMuted, marginBottom: theme.spacing.sm },
++  track: {
++    height: 8,
++    borderRadius: theme.radius.pill,
++    backgroundColor: theme.colors.border,
++    overflow: 'hidden',
++  },
++  fill: { width: '14%', height: '100%', backgroundColor: theme.colors.accent },
++  grid: { display: 'grid', gap: theme.spacing.lg },
++});
+diff --git a/app/(tabs)/desejos.js b/app/(tabs)/desejos.js
+index afb416c..d3eeb46 100644
+--- a/app/(tabs)/desejos.js
++++ b/app/(tabs)/desejos.js
+@@ -10,10 +10,75 @@ import { getCards } from '../../src/services/api';
+ import { theme } from '../../src/theme';
+ 
+ export default function Desejos() {
+-  const [cards, setCards] = useState([]); const [status, setStatus] = useState('loading');
+-  const load = async () => { setStatus('loading'); try { setCards((await getCards()).slice(0, 6)); setStatus('ready'); } catch { setStatus('error'); } };
+-  useEffect(() => { load(); }, []); const [alerts, setAlerts] = useState([true,true,true,true,true,true]);
+-  if (status === 'loading') return <View style={styles.page}><Skeleton height={260} /></View>; if (status === 'error') return <EstadoErro onRetry={load} />;
+-  return <ScrollView contentContainerStyle={styles.page}><Head><title>Lista de desejos | ManaTrade</title></Head><Cabecalho title="Lista de desejos" />{cards.length ? cards.map((card, index) => <View key={card.id} style={styles.row}><ListaItem title={card.name} subtitle={`Atual R$ ${card.price.toFixed(2)} · Alvo R$ ${(card.price * 0.88).toFixed(2)} · ${card.trend < 0 ? '↓ queda' : '↑ alta'}`} meta={`${card.trend}%`} /><Pressable accessibilityRole="button" style={styles.toggle} onPress={() => setAlerts((items) => items.map((active, i) => i === index ? !active : active))}><Text style={[styles.toggleText, alerts[index] && styles.active]}>{alerts[index] ? 'Alerta ativo' : 'Ativar alerta'}</Text></Pressable></View>) : <EstadoVazio titulo="Nenhum desejo" acao="Buscar cartas" />}</ScrollView>;
++  const [cards, setCards] = useState([]);
++  const [status, setStatus] = useState('loading');
++  const load = async () => {
++    setStatus('loading');
++    try {
++      setCards((await getCards()).slice(0, 6));
++      setStatus('ready');
++    } catch {
++      setStatus('error');
++    }
++  };
++  useEffect(() => {
++    load();
++  }, []);
++  const [alerts, setAlerts] = useState([true, true, true, true, true, true]);
++  if (status === 'loading')
++    return (
++      <View style={styles.page}>
++        <Skeleton height={260} />
++      </View>
++    );
++  if (status === 'error') return <EstadoErro onRetry={load} />;
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>Lista de desejos | ManaTrade</title>
++      </Head>
++      <Cabecalho title="Lista de desejos" />
++      {cards.length ? (
++        cards.map((card, index) => (
++          <View key={card.id} style={styles.row}>
++            <ListaItem
++              title={card.name}
++              subtitle={`Atual R$ ${card.price.toFixed(2)} · Alvo R$ ${(card.price * 0.88).toFixed(2)} · ${card.trend < 0 ? '↓ queda' : '↑ alta'}`}
++              meta={`${card.trend}%`}
++            />
++            <Pressable
++              accessibilityRole="button"
++              style={styles.toggle}
++              onPress={() =>
++                setAlerts((items) => items.map((active, i) => (i === index ? !active : active)))
++              }
++            >
++              <Text style={[styles.toggleText, alerts[index] && styles.active]}>
++                {alerts[index] ? 'Alerta ativo' : 'Ativar alerta'}
++              </Text>
++            </Pressable>
++          </View>
++        ))
++      ) : (
++        <EstadoVazio titulo="Nenhum desejo" acao="Buscar cartas" />
++      )}
++    </ScrollView>
++  );
+ }
+-const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 1320, alignSelf: 'center', width: '100%', padding: theme.spacing.lg }, row: { paddingRight: theme.spacing.md, borderBottomWidth: 1, borderBottomColor: theme.colors.border }, toggle: { minHeight: 44, alignItems: 'flex-end', justifyContent: 'center' }, toggleText: { color: theme.colors.textMuted }, active: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold } });
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 1320,
++    alignSelf: 'center',
++    width: '100%',
++    padding: theme.spacing.lg,
++  },
++  row: {
++    paddingRight: theme.spacing.md,
++    borderBottomWidth: 1,
++    borderBottomColor: theme.colors.border,
++  },
++  toggle: { minHeight: 44, alignItems: 'flex-end', justifyContent: 'center' },
++  toggleText: { color: theme.colors.textMuted },
++  active: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold },
++});
+diff --git a/app/(tabs)/index.js b/app/(tabs)/index.js
+index c8fa919..ff096bf 100644
+--- a/app/(tabs)/index.js
++++ b/app/(tabs)/index.js
+@@ -15,16 +15,161 @@ import { theme } from '../../src/theme';
+ 
+ export default function Inicio() {
+   const { columns, isWide } = useBreakpoint();
+-  const [state, setState] = useState({ loading: true, error: false, cards: [], stores: [], events: [] });
++  const [state, setState] = useState({
++    loading: true,
++    error: false,
++    cards: [],
++    stores: [],
++    events: [],
++  });
+   const [filter, setFilter] = useState('Todos');
+   const [query, setQuery] = useState('');
+-  const load = async () => { setState((s) => ({ ...s, loading: true, error: false })); try { const [cards, stores, events] = await Promise.all([getCards(), getStores(), getEvents()]); setState({ loading: false, error: false, cards, stores, events }); } catch { setState((s) => ({ ...s, loading: false, error: true })); } };
+-  useEffect(() => { load(); }, []);
+-  const visible = state.cards.filter((item) => (filter === 'Todos' || item.game.startsWith(filter)) && item.name.toLowerCase().includes(query.toLowerCase()));
+-  if (state.loading) return <ScrollView contentContainerStyle={styles.page}><Head><title>Início | ManaTrade</title></Head><Cabecalho title="Descobrir" /><Skeleton height={52} /><Skeleton height={260} /></ScrollView>;
++  const load = async () => {
++    setState((s) => ({ ...s, loading: true, error: false }));
++    try {
++      const [cards, stores, events] = await Promise.all([getCards(), getStores(), getEvents()]);
++      setState({ loading: false, error: false, cards, stores, events });
++    } catch {
++      setState((s) => ({ ...s, loading: false, error: true }));
++    }
++  };
++  useEffect(() => {
++    load();
++  }, []);
++  const visible = state.cards.filter(
++    (item) =>
++      (filter === 'Todos' || item.game.startsWith(filter)) &&
++      item.name.toLowerCase().includes(query.toLowerCase()),
++  );
++  if (state.loading)
++    return (
++      <ScrollView contentContainerStyle={styles.page}>
++        <Head>
++          <title>Início | ManaTrade</title>
++        </Head>
++        <Cabecalho title="Descobrir" />
++        <Skeleton height={52} />
++        <Skeleton height={260} />
++      </ScrollView>
++    );
+   if (state.error) return <EstadoErro onRetry={load} />;
+-  if (!visible.length) return <ScrollView contentContainerStyle={styles.page}><Cabecalho title="Descobrir" /><EstadoVazio titulo="Nenhuma carta encontrada" texto="Altere os filtros ou a busca." acao="Limpar filtros" onPress={() => { setFilter('Todos'); setQuery(''); }} /></ScrollView>;
+-  return <ScrollView contentContainerStyle={[styles.page, isWide && styles.pageWide]}><Head><title>Início | ManaTrade</title></Head><Cabecalho title="Descobrir" subtitle="Mercado, coleção e eventos em um só lugar" /><TextInput value={query} onChangeText={setQuery} placeholder="Buscar carta, edição ou jogo" placeholderTextColor={theme.colors.textMuted} style={styles.search} /><View style={styles.filters}>{['Todos','Magic','Pokémon','Yu-Gi-Oh!','Lorcana'].map((item) => <ChipFiltro key={item} label={item} active={filter === item} onPress={() => setFilter(item)} />)}</View><Section title="Em alta"><View style={[styles.grid, { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }]}>{visible.slice(0, columns).map((item) => <CardCapa key={item.id} item={item} onPress={() => router.push(`/carta/${item.id}`)} />)}</View></Section><Section title="Anúncios perto de você"><View>{state.stores.slice(0, 3).map((store) => <ListaItem key={store.id} title={store.name} subtitle={`${store.distance} · ${store.hours}`} meta={store.consign ? 'Consignação' : undefined} onPress={() => router.push(`/loja/${store.id}`)} />)}</View></Section><Section title="Eventos nas lojas parceiras"><View>{state.events.slice(0, 3).map((event) => <ListaItem key={event.id} title={event.title} subtitle={`${event.store} · ${event.game}`} meta={event.date} onPress={() => router.push('/comunidade')} />)}</View></Section></ScrollView>;
++  if (!visible.length)
++    return (
++      <ScrollView contentContainerStyle={styles.page}>
++        <Cabecalho title="Descobrir" />
++        <EstadoVazio
++          titulo="Nenhuma carta encontrada"
++          texto="Altere os filtros ou a busca."
++          acao="Limpar filtros"
++          onPress={() => {
++            setFilter('Todos');
++            setQuery('');
++          }}
++        />
++      </ScrollView>
++    );
++  return (
++    <ScrollView contentContainerStyle={[styles.page, isWide && styles.pageWide]}>
++      <Head>
++        <title>Início | ManaTrade</title>
++      </Head>
++      <Cabecalho title="Descobrir" subtitle="Mercado, coleção e eventos em um só lugar" />
++      <TextInput
++        value={query}
++        onChangeText={setQuery}
++        placeholder="Buscar carta, edição ou jogo"
++        placeholderTextColor={theme.colors.textMuted}
++        style={styles.search}
++      />
++      <View style={styles.filters}>
++        {['Todos', 'Magic', 'Pokémon', 'Yu-Gi-Oh!', 'Lorcana'].map((item) => (
++          <ChipFiltro
++            key={item}
++            label={item}
++            active={filter === item}
++            onPress={() => setFilter(item)}
++          />
++        ))}
++      </View>
++      <Section title="Em alta">
++        <View style={[styles.grid, { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }]}>
++          {visible.slice(0, columns).map((item) => (
++            <CardCapa key={item.id} item={item} onPress={() => router.push(`/carta/${item.id}`)} />
++          ))}
++        </View>
++      </Section>
++      <Section title="Anúncios perto de você">
++        <View>
++          {state.stores.slice(0, 3).map((store) => (
++            <ListaItem
++              key={store.id}
++              title={store.name}
++              subtitle={`${store.distance} · ${store.hours}`}
++              meta={store.consign ? 'Consignação' : undefined}
++              onPress={() => router.push(`/loja/${store.id}`)}
++            />
++          ))}
++        </View>
++      </Section>
++      <Section title="Eventos nas lojas parceiras">
++        <View>
++          {state.events.slice(0, 3).map((event) => (
++            <ListaItem
++              key={event.id}
++              title={event.title}
++              subtitle={`${event.store} · ${event.game}`}
++              meta={event.date}
++              onPress={() => router.push('/comunidade')}
++            />
++          ))}
++        </View>
++      </Section>
++    </ScrollView>
++  );
+ }
+-function Section({ title, children }) { return <View style={styles.section}><Text style={styles.sectionTitle}>{title}</Text>{children}</View>; }
+-const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 1320, alignSelf: 'center', width: '100%', padding: theme.spacing.lg, paddingLeft: theme.spacing.xxl }, pageWide: { paddingLeft: 142 }, search: { minHeight: 48, color: theme.colors.text, borderRadius: theme.radius.sm, borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.surface, paddingHorizontal: theme.spacing.md }, filters: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm, marginVertical: theme.spacing.lg }, grid: { display: 'grid', gap: theme.spacing.lg, width: '100%', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }, section: { gap: theme.spacing.md, marginBottom: theme.spacing.xxl }, sectionTitle: { color: theme.colors.text, fontSize: theme.typography.h2, fontWeight: theme.typography.weight.bold } });
++function Section({ title, children }) {
++  return (
++    <View style={styles.section}>
++      <Text style={styles.sectionTitle}>{title}</Text>
++      {children}
++    </View>
++  );
++}
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 1320,
++    alignSelf: 'center',
++    width: '100%',
++    padding: theme.spacing.lg,
++    paddingLeft: theme.spacing.xxl,
++  },
++  pageWide: { paddingLeft: 142 },
++  search: {
++    minHeight: 48,
++    color: theme.colors.text,
++    borderRadius: theme.radius.sm,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    backgroundColor: theme.colors.surface,
++    paddingHorizontal: theme.spacing.md,
++  },
++  filters: {
++    flexDirection: 'row',
++    flexWrap: 'wrap',
++    gap: theme.spacing.sm,
++    marginVertical: theme.spacing.lg,
++  },
++  grid: {
++    display: 'grid',
++    gap: theme.spacing.lg,
++    width: '100%',
++    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
++  },
++  section: { gap: theme.spacing.md, marginBottom: theme.spacing.xxl },
++  sectionTitle: {
++    color: theme.colors.text,
++    fontSize: theme.typography.h2,
++    fontWeight: theme.typography.weight.bold,
++  },
++});
+diff --git a/app/(tabs)/manuscan.js b/app/(tabs)/manuscan.js
+index 823e83c..17da43b 100644
+--- a/app/(tabs)/manuscan.js
++++ b/app/(tabs)/manuscan.js
+@@ -12,7 +12,12 @@ import { theme } from '../../src/theme';
+ 
+ export default function ManaScan() {
+   const [state, setState] = useState('idle');
+-  const [result, setResult] = useState({ name: 'The One Ring', edition: 'The Lord of the Rings', condition: 'NM', price: '310' });
++  const [result, setResult] = useState({
++    name: 'The One Ring',
++    edition: 'The Lord of the Rings',
++    condition: 'NM',
++    price: '310',
++  });
+   const [error, setError] = useState('');
+ 
+   const analyze = () => {
+@@ -21,19 +26,179 @@ export default function ManaScan() {
+   };
+   const pickImage = async () => {
+     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+-    if (!permission.granted) { setError('Libere o acesso à biblioteca de fotos nas configurações do dispositivo.'); setState('error'); return; }
+-    const photo = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
++    if (!permission.granted) {
++      setError('Libere o acesso à biblioteca de fotos nas configurações do dispositivo.');
++      setState('error');
++      return;
++    }
++    const photo = await ImagePicker.launchImageLibraryAsync({
++      mediaTypes: ['images'],
++      quality: 0.8,
++    });
+     if (!photo.canceled) analyze();
+   };
+   const openCamera = async () => {
+-    if (Platform.OS === 'web') { setError('A câmera não está disponível nesta sessão web. Use o arquivo da galeria.'); setState('permission'); return; }
++    if (Platform.OS === 'web') {
++      setError('A câmera não está disponível nesta sessão web. Use o arquivo da galeria.');
++      setState('permission');
++      return;
++    }
+     const permission = await ImagePicker.requestCameraPermissionsAsync();
+-    if (!permission.granted) { setError('O acesso à câmera foi negado. Libere a câmera nas configurações do dispositivo.'); setState('permission'); return; }
++    if (!permission.granted) {
++      setError('O acesso à câmera foi negado. Libere a câmera nas configurações do dispositivo.');
++      setState('permission');
++      return;
++    }
+     const photo = await ImagePicker.launchCameraAsync({ quality: 0.8 });
+     if (!photo.canceled) analyze();
+   };
+   const update = (field, value) => setResult((current) => ({ ...current, [field]: value }));
+ 
+-  return <ScrollView contentContainerStyle={styles.page}><Head><title>ManaScan | ManaTrade</title></Head><Cabecalho title="ManaScan" subtitle="Identifique uma carta pela imagem" />{state === 'loading' ? <View style={styles.loading}><Skeleton height={320} /><View style={styles.loadingRow}><Skeleton width="32%" height={44} /><Skeleton width="32%" height={44} /><Skeleton width="32%" height={44} /></View></View> : state === 'permission' ? <View style={styles.panel}><Text style={styles.eyebrow}>PERMISSÃO NECESSÁRIA</Text><Text style={styles.title}>{error}</Text><BotaoSecundario label="Abrir configurações do dispositivo" onPress={() => setState('idle')} /><BotaoPrimario label="Enviar foto da galeria" onPress={pickImage} /></View> : state === 'error' ? <EstadoErro texto={error || 'Não identificamos a carta.'} onRetry={() => setState('idle')} /> : state === 'result' ? <View style={styles.panel}><Text style={styles.eyebrow}>RESULTADO DA IA</Text><Text style={styles.title}>Dados sugeridos</Text>{['name','edition','price'].map((field) => <View key={field}><Text style={styles.label}>{{ name:'Nome', edition:'Edição', price:'Preço justo (R$)' }[field]}</Text><TextInput value={result[field]} onChangeText={(value) => update(field, value)} style={styles.input} /></View>) }<View style={styles.conditionRow}>{['NM','SP','MP','HP'].map((condition) => <Pressable key={condition} onPress={() => update('condition', condition)} style={[styles.condition, result.condition === condition && styles.conditionActive]}><SeloCondicao value={condition} /></Pressable>)}</View><View style={styles.actions}><BotaoPrimario label="Anunciar" onPress={() => setState('idle')} /><BotaoSecundario label="Adicionar à biblioteca" onPress={() => setState('idle')} /><BotaoSecundario label="Consignar" onPress={() => setState('idle')} /></View></View> : <View style={styles.scan}><View style={styles.frame}><Text style={styles.frameText}>Enquadre a carta</Text></View><View style={styles.actions}><BotaoPrimario label="Capturar com a câmera" onPress={openCamera} /><BotaoSecundario label="Enviar foto da galeria" onPress={pickImage} /><BotaoSecundario label="Simular resultado" onPress={analyze} /></View></View>}</ScrollView>;
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>ManaScan | ManaTrade</title>
++      </Head>
++      <Cabecalho title="ManaScan" subtitle="Identifique uma carta pela imagem" />
++      {state === 'loading' ? (
++        <View style={styles.loading}>
++          <Skeleton height={320} />
++          <View style={styles.loadingRow}>
++            <Skeleton width="32%" height={44} />
++            <Skeleton width="32%" height={44} />
++            <Skeleton width="32%" height={44} />
++          </View>
++        </View>
++      ) : state === 'permission' ? (
++        <View style={styles.panel}>
++          <Text style={styles.eyebrow}>PERMISSÃO NECESSÁRIA</Text>
++          <Text style={styles.title}>{error}</Text>
++          <BotaoSecundario
++            label="Abrir configurações do dispositivo"
++            onPress={() => setState('idle')}
++          />
++          <BotaoPrimario label="Enviar foto da galeria" onPress={pickImage} />
++        </View>
++      ) : state === 'error' ? (
++        <EstadoErro
++          texto={error || 'Não identificamos a carta.'}
++          onRetry={() => setState('idle')}
++        />
++      ) : state === 'result' ? (
++        <View style={styles.panel}>
++          <Text style={styles.eyebrow}>RESULTADO DA IA</Text>
++          <Text style={styles.title}>Dados sugeridos</Text>
++          {['name', 'edition', 'price'].map((field) => (
++            <View key={field}>
++              <Text style={styles.label}>
++                {{ name: 'Nome', edition: 'Edição', price: 'Preço justo (R$)' }[field]}
++              </Text>
++              <TextInput
++                value={result[field]}
++                onChangeText={(value) => update(field, value)}
++                style={styles.input}
++              />
++            </View>
++          ))}
++          <View style={styles.conditionRow}>
++            {['NM', 'SP', 'MP', 'HP'].map((condition) => (
++              <Pressable
++                key={condition}
++                onPress={() => update('condition', condition)}
++                style={[styles.condition, result.condition === condition && styles.conditionActive]}
++              >
++                <SeloCondicao value={condition} />
++              </Pressable>
++            ))}
++          </View>
++          <View style={styles.actions}>
++            <BotaoPrimario label="Anunciar" onPress={() => setState('idle')} />
++            <BotaoSecundario label="Adicionar à biblioteca" onPress={() => setState('idle')} />
++            <BotaoSecundario label="Consignar" onPress={() => setState('idle')} />
++          </View>
++        </View>
++      ) : (
++        <View style={styles.scan}>
++          <View style={styles.frame}>
++            <Text style={styles.frameText}>Enquadre a carta</Text>
++          </View>
++          <View style={styles.actions}>
++            <BotaoPrimario label="Capturar com a câmera" onPress={openCamera} />
++            <BotaoSecundario label="Enviar foto da galeria" onPress={pickImage} />
++            <BotaoSecundario label="Simular resultado" onPress={analyze} />
++          </View>
++        </View>
++      )}
++    </ScrollView>
++  );
+ }
+-const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 960, width: '100%', alignSelf: 'center', padding: theme.spacing.lg }, panel: { gap: theme.spacing.md, width: '100%', maxWidth: 540, alignSelf: 'center', padding: theme.spacing.xl, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, loading: { gap: theme.spacing.lg, width: '100%', maxWidth: 540, alignSelf: 'center' }, loadingRow: { flexDirection: 'row', justifyContent: 'space-between' }, scan: { alignItems: 'center' }, frame: { width: '100%', maxWidth: 360, aspectRatio: 5 / 7, alignItems: 'center', justifyContent: 'center', borderRadius: theme.radius.lg, borderWidth: 2, borderColor: theme.colors.accent, backgroundColor: '#10283a' }, frameText: { color: theme.colors.textMuted }, actions: { width: '100%', maxWidth: 540, gap: theme.spacing.sm, marginTop: theme.spacing.lg }, eyebrow: { color: theme.colors.accent, fontSize: theme.typography.small, fontWeight: theme.typography.weight.bold }, title: { color: theme.colors.text, fontSize: theme.typography.h2, fontWeight: theme.typography.weight.bold }, label: { color: theme.colors.textMuted, marginBottom: theme.spacing.xs }, input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background, paddingHorizontal: theme.spacing.md }, conditionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }, condition: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: theme.radius.sm, borderWidth: 1, borderColor: theme.colors.border }, conditionActive: { borderColor: theme.colors.accent, backgroundColor: theme.colors.surfaceRaised } });
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 960,
++    width: '100%',
++    alignSelf: 'center',
++    padding: theme.spacing.lg,
++  },
++  panel: {
++    gap: theme.spacing.md,
++    width: '100%',
++    maxWidth: 540,
++    alignSelf: 'center',
++    padding: theme.spacing.xl,
++    borderRadius: theme.radius.lg,
++    backgroundColor: theme.colors.surface,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++  },
++  loading: { gap: theme.spacing.lg, width: '100%', maxWidth: 540, alignSelf: 'center' },
++  loadingRow: { flexDirection: 'row', justifyContent: 'space-between' },
++  scan: { alignItems: 'center' },
++  frame: {
++    width: '100%',
++    maxWidth: 360,
++    aspectRatio: 5 / 7,
++    alignItems: 'center',
++    justifyContent: 'center',
++    borderRadius: theme.radius.lg,
++    borderWidth: 2,
++    borderColor: theme.colors.accent,
++    backgroundColor: '#10283a',
++  },
++  frameText: { color: theme.colors.textMuted },
++  actions: { width: '100%', maxWidth: 540, gap: theme.spacing.sm, marginTop: theme.spacing.lg },
++  eyebrow: {
++    color: theme.colors.accent,
++    fontSize: theme.typography.small,
++    fontWeight: theme.typography.weight.bold,
++  },
++  title: {
++    color: theme.colors.text,
++    fontSize: theme.typography.h2,
++    fontWeight: theme.typography.weight.bold,
++  },
++  label: { color: theme.colors.textMuted, marginBottom: theme.spacing.xs },
++  input: {
++    minHeight: 48,
++    color: theme.colors.text,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    borderRadius: theme.radius.sm,
++    backgroundColor: theme.colors.background,
++    paddingHorizontal: theme.spacing.md,
++  },
++  conditionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
++  condition: {
++    minWidth: 44,
++    minHeight: 44,
++    alignItems: 'center',
++    justifyContent: 'center',
++    borderRadius: theme.radius.sm,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++  },
++  conditionActive: {
++    borderColor: theme.colors.accent,
++    backgroundColor: theme.colors.surfaceRaised,
++  },
++});
+diff --git a/app/(tabs)/perfil.js b/app/(tabs)/perfil.js
+index 65b0963..ba462fd 100644
+--- a/app/(tabs)/perfil.js
++++ b/app/(tabs)/perfil.js
+@@ -10,8 +10,120 @@ import { cards } from '../../src/mocks/dados';
+ import { theme } from '../../src/theme';
+ 
+ export default function Perfil() {
+-  const { user, signOut } = useAuth(); const [confirm, setConfirm] = useState(false);
+-  const logout = async () => { setConfirm(false); await signOut(); router.replace('/auth/login'); };
+-  return <ScrollView contentContainerStyle={styles.page}><Head><title>Perfil | ManaTrade</title></Head><View style={styles.profile}><View style={styles.avatar}><Text style={styles.avatarText}>{user?.name?.slice(0,1) || 'M'}</Text></View><View><Text style={styles.name}>{user?.name}</Text><Text style={styles.subtitle}>Nível 18 · 7.640 XP</Text></View></View><View style={styles.stats}>{[['128','Cartas'],['R$ 18.420','Valor'],['23','Vendas']].map(([value,label]) => <View key={label} style={styles.stat}><Text style={styles.statValue}>{value}</Text><Text style={styles.statLabel}>{label}</Text></View>)}</View><Text style={styles.title}>Vitrine</Text><View style={styles.grid}>{cards.slice(0,3).map((card) => <CardCapa key={card.id} item={card} compact />)}</View><Text style={styles.title}>Conquistas</Text><View style={styles.badges}><Text style={styles.badge}>Set completo</Text><Text style={styles.badge}>Primeira rara</Text><Text style={styles.badge}>4,9 avaliações</Text></View><BotaoSecundario label="Configurações" onPress={() => router.push('/configuracoes')} /><BotaoSecundario label="Sair" danger onPress={() => setConfirm(true)} /><ModalConfirmacao visible={confirm} title="Sair da conta?" message="Sua sessão será encerrada neste dispositivo." confirmLabel="Sair" onConfirm={logout} onCancel={() => setConfirm(false)} /></ScrollView>;
++  const { user, signOut } = useAuth();
++  const [confirm, setConfirm] = useState(false);
++  const logout = async () => {
++    setConfirm(false);
++    await signOut();
++    router.replace('/auth/login');
++  };
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>Perfil | ManaTrade</title>
++      </Head>
++      <View style={styles.profile}>
++        <View style={styles.avatar}>
++          <Text style={styles.avatarText}>{user?.name?.slice(0, 1) || 'M'}</Text>
++        </View>
++        <View>
++          <Text style={styles.name}>{user?.name}</Text>
++          <Text style={styles.subtitle}>Nível 18 · 7.640 XP</Text>
++        </View>
++      </View>
++      <View style={styles.stats}>
++        {[
++          ['128', 'Cartas'],
++          ['R$ 18.420', 'Valor'],
++          ['23', 'Vendas'],
++        ].map(([value, label]) => (
++          <View key={label} style={styles.stat}>
++            <Text style={styles.statValue}>{value}</Text>
++            <Text style={styles.statLabel}>{label}</Text>
++          </View>
++        ))}
++      </View>
++      <Text style={styles.title}>Vitrine</Text>
++      <View style={styles.grid}>
++        {cards.slice(0, 3).map((card) => (
++          <CardCapa key={card.id} item={card} compact />
++        ))}
++      </View>
++      <Text style={styles.title}>Conquistas</Text>
++      <View style={styles.badges}>
++        <Text style={styles.badge}>Set completo</Text>
++        <Text style={styles.badge}>Primeira rara</Text>
++        <Text style={styles.badge}>4,9 avaliações</Text>
++      </View>
++      <BotaoSecundario label="Configurações" onPress={() => router.push('/configuracoes')} />
++      <BotaoSecundario label="Sair" danger onPress={() => setConfirm(true)} />
++      <ModalConfirmacao
++        visible={confirm}
++        title="Sair da conta?"
++        message="Sua sessão será encerrada neste dispositivo."
++        confirmLabel="Sair"
++        onConfirm={logout}
++        onCancel={() => setConfirm(false)}
++      />
++    </ScrollView>
++  );
+ }
+-const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 1320, alignSelf: 'center', width: '100%', gap: theme.spacing.lg, padding: theme.spacing.lg }, profile: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.lg }, avatar: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.accent }, avatarText: { color: theme.colors.background, fontSize: 32, fontWeight: theme.typography.weight.bold }, name: { color: theme.colors.text, fontSize: theme.typography.title, fontWeight: theme.typography.weight.bold }, subtitle: { color: theme.colors.textMuted }, stats: { flexDirection: 'row', gap: theme.spacing.sm }, stat: { flex: 1, minWidth: 96, padding: theme.spacing.md, borderRadius: theme.radius.md, backgroundColor: theme.colors.surface }, statValue: { color: theme.colors.accent, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, statLabel: { color: theme.colors.textMuted, fontSize: theme.typography.small }, title: { color: theme.colors.text, fontSize: theme.typography.h2, fontWeight: theme.typography.weight.bold }, grid: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.md }, badges: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }, badge: { minHeight: 44, paddingHorizontal: theme.spacing.lg, borderRadius: theme.radius.pill, textAlignVertical: 'center', color: theme.colors.text, backgroundColor: theme.colors.surface } });
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 1320,
++    alignSelf: 'center',
++    width: '100%',
++    gap: theme.spacing.lg,
++    padding: theme.spacing.lg,
++  },
++  profile: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.lg },
++  avatar: {
++    width: 72,
++    height: 72,
++    borderRadius: 36,
++    alignItems: 'center',
++    justifyContent: 'center',
++    backgroundColor: theme.colors.accent,
++  },
++  avatarText: {
++    color: theme.colors.background,
++    fontSize: 32,
++    fontWeight: theme.typography.weight.bold,
++  },
++  name: {
++    color: theme.colors.text,
++    fontSize: theme.typography.title,
++    fontWeight: theme.typography.weight.bold,
++  },
++  subtitle: { color: theme.colors.textMuted },
++  stats: { flexDirection: 'row', gap: theme.spacing.sm },
++  stat: {
++    flex: 1,
++    minWidth: 96,
++    padding: theme.spacing.md,
++    borderRadius: theme.radius.md,
++    backgroundColor: theme.colors.surface,
++  },
++  statValue: {
++    color: theme.colors.accent,
++    fontSize: theme.typography.h3,
++    fontWeight: theme.typography.weight.bold,
++  },
++  statLabel: { color: theme.colors.textMuted, fontSize: theme.typography.small },
++  title: {
++    color: theme.colors.text,
++    fontSize: theme.typography.h2,
++    fontWeight: theme.typography.weight.bold,
++  },
++  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.md },
++  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
++  badge: {
++    minHeight: 44,
++    paddingHorizontal: theme.spacing.lg,
++    borderRadius: theme.radius.pill,
++    textAlignVertical: 'center',
++    color: theme.colors.text,
++    backgroundColor: theme.colors.surface,
++  },
++});
+diff --git a/app/_layout.js b/app/_layout.js
+index 4f01d18..9b50fde 100644
+--- a/app/_layout.js
++++ b/app/_layout.js
+@@ -23,14 +23,26 @@ function RootNavigation() {
+ 
+   if (!ready) {
+     return (
+-      <View style={{ flex: 1, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center' }}>
++      <View
++        style={{
++          flex: 1,
++          backgroundColor: theme.colors.background,
++          alignItems: 'center',
++          justifyContent: 'center',
++        }}
++      >
+         <ActivityIndicator color={theme.colors.accent} />
+       </View>
+     );
+   }
+ 
+   return (
+-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background } }}>
++    <Stack
++      screenOptions={{
++        headerShown: false,
++        contentStyle: { backgroundColor: theme.colors.background },
++      }}
++    >
+       <Stack.Screen name="auth" />
+       <Stack.Screen name="(tabs)" />
+     </Stack>
+diff --git a/app/anuncio/[id].js b/app/anuncio/[id].js
+index bcd291a..8e21cfa 100644
+--- a/app/anuncio/[id].js
++++ b/app/anuncio/[id].js
+@@ -11,8 +11,108 @@ import { cards, anuncios } from '../../src/mocks/dados';
+ import { theme } from '../../src/theme';
+ 
+ export default function AnuncioForm() {
+-  const { id } = useLocalSearchParams(); const router=useRouter(); const existing=anuncios.find((item)=>item.id===id); const [confirm,setConfirm]=useState(false); const [card,setCard]=useState(existing?.title || cards[0].name); const [edition,setEdition]=useState(cards[0].edition); const [condition,setCondition]=useState(existing?.condition || 'NM'); const [price,setPrice]=useState(String(existing?.price || cards[0].price)); const [qty,setQty]=useState(String(existing?.qty || 1)); const [description,setDescription]=useState('Carta revisada e protegida.');
+-  const fields=[['Carta',card,setCard],['Edição',edition,setEdition],['Preço',price,setPrice],['Quantidade',qty,setQty],['Descrição',description,setDescription]];
+-  return <ScrollView contentContainerStyle={styles.page}><Head><title>{id==='novo'?'Novo anúncio':'Editar anúncio'} | ManaTrade</title></Head><Cabecalho title={id==='novo'?'Novo anúncio':'Editar anúncio'} back /><View style={styles.card}>{fields.map(([label,value,set])=> <View key={label}><Text style={styles.label}>{label}</Text><TextInput value={value} onChangeText={set} keyboardType={label==='Preço'||label==='Quantidade'? 'numeric':'default'} multiline={label==='Descrição'} style={[styles.input,label==='Descrição'&&styles.area]} /></View>) }<Text style={styles.label}>Condição</Text><View style={styles.row}>{['NM','SP','MP','HP'].map((item)=><ChipFiltro key={item} label={item} active={condition===item} onPress={()=>setCondition(item)} />)}</View><BotaoPrimario label="Salvar anúncio" onPress={()=>router.replace('/meus-anuncios')} />{existing&&<BotaoSecundario label="Excluir anúncio" danger onPress={()=>setConfirm(true)} />}<View style={styles.photo}><Text style={styles.photoText}>Adicionar fotos</Text></View></View><ModalConfirmacao visible={confirm} title="Excluir anúncio?" message="Esta ação não poderá ser desfeita." confirmLabel="Excluir" onConfirm={()=>router.replace('/meus-anuncios')} onCancel={()=>setConfirm(false)} /></ScrollView>;
++  const { id } = useLocalSearchParams();
++  const router = useRouter();
++  const existing = anuncios.find((item) => item.id === id);
++  const [confirm, setConfirm] = useState(false);
++  const [card, setCard] = useState(existing?.title || cards[0].name);
++  const [edition, setEdition] = useState(cards[0].edition);
++  const [condition, setCondition] = useState(existing?.condition || 'NM');
++  const [price, setPrice] = useState(String(existing?.price || cards[0].price));
++  const [qty, setQty] = useState(String(existing?.qty || 1));
++  const [description, setDescription] = useState('Carta revisada e protegida.');
++  const fields = [
++    ['Carta', card, setCard],
++    ['Edição', edition, setEdition],
++    ['Preço', price, setPrice],
++    ['Quantidade', qty, setQty],
++    ['Descrição', description, setDescription],
++  ];
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>{id === 'novo' ? 'Novo anúncio' : 'Editar anúncio'} | ManaTrade</title>
++      </Head>
++      <Cabecalho title={id === 'novo' ? 'Novo anúncio' : 'Editar anúncio'} back />
++      <View style={styles.card}>
++        {fields.map(([label, value, set]) => (
++          <View key={label}>
++            <Text style={styles.label}>{label}</Text>
++            <TextInput
++              value={value}
++              onChangeText={set}
++              keyboardType={label === 'Preço' || label === 'Quantidade' ? 'numeric' : 'default'}
++              multiline={label === 'Descrição'}
++              style={[styles.input, label === 'Descrição' && styles.area]}
++            />
++          </View>
++        ))}
++        <Text style={styles.label}>Condição</Text>
++        <View style={styles.row}>
++          {['NM', 'SP', 'MP', 'HP'].map((item) => (
++            <ChipFiltro
++              key={item}
++              label={item}
++              active={condition === item}
++              onPress={() => setCondition(item)}
++            />
++          ))}
++        </View>
++        <BotaoPrimario label="Salvar anúncio" onPress={() => router.replace('/meus-anuncios')} />
++        {existing && (
++          <BotaoSecundario label="Excluir anúncio" danger onPress={() => setConfirm(true)} />
++        )}
++        <View style={styles.photo}>
++          <Text style={styles.photoText}>Adicionar fotos</Text>
++        </View>
++      </View>
++      <ModalConfirmacao
++        visible={confirm}
++        title="Excluir anúncio?"
++        message="Esta ação não poderá ser desfeita."
++        confirmLabel="Excluir"
++        onConfirm={() => router.replace('/meus-anuncios')}
++        onCancel={() => setConfirm(false)}
++      />
++    </ScrollView>
++  );
+ }
+-const styles=StyleSheet.create({page:{flexGrow:1,alignItems:'center',padding:theme.spacing.lg},card:{width:'100%',maxWidth:480,gap:theme.spacing.md,padding:theme.spacing.xl,borderRadius:theme.radius.lg,borderWidth:1,borderColor:theme.colors.border,backgroundColor:theme.colors.surface},label:{color:theme.colors.textMuted,fontSize:theme.typography.small,marginBottom:theme.spacing.xs},input:{minHeight:48,color:theme.colors.text,borderWidth:1,borderColor:theme.colors.border,borderRadius:theme.radius.sm,backgroundColor:theme.colors.background,paddingHorizontal:theme.spacing.md},area:{height:100,paddingTop:theme.spacing.md,textAlignVertical:'top'},row:{flexDirection:'row',gap:theme.spacing.sm},photo:{minHeight:90,alignItems:'center',justifyContent:'center',borderStyle:'dashed',borderWidth:1,borderColor:theme.colors.accent,borderRadius:theme.radius.sm},photoText:{color:theme.colors.accent,fontWeight:theme.typography.weight.bold}});
++const styles = StyleSheet.create({
++  page: { flexGrow: 1, alignItems: 'center', padding: theme.spacing.lg },
++  card: {
++    width: '100%',
++    maxWidth: 480,
++    gap: theme.spacing.md,
++    padding: theme.spacing.xl,
++    borderRadius: theme.radius.lg,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    backgroundColor: theme.colors.surface,
++  },
++  label: {
++    color: theme.colors.textMuted,
++    fontSize: theme.typography.small,
++    marginBottom: theme.spacing.xs,
++  },
++  input: {
++    minHeight: 48,
++    color: theme.colors.text,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    borderRadius: theme.radius.sm,
++    backgroundColor: theme.colors.background,
++    paddingHorizontal: theme.spacing.md,
++  },
++  area: { height: 100, paddingTop: theme.spacing.md, textAlignVertical: 'top' },
++  row: { flexDirection: 'row', gap: theme.spacing.sm },
++  photo: {
++    minHeight: 90,
++    alignItems: 'center',
++    justifyContent: 'center',
++    borderStyle: 'dashed',
++    borderWidth: 1,
++    borderColor: theme.colors.accent,
++    borderRadius: theme.radius.sm,
++  },
++  photoText: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold },
++});
+diff --git a/app/auth/cadastro.js b/app/auth/cadastro.js
+index b9438ae..7b0f794 100644
+--- a/app/auth/cadastro.js
++++ b/app/auth/cadastro.js
+@@ -10,12 +10,125 @@ import { theme } from '../../src/theme';
+ export default function Cadastro() {
+   const { signIn } = useAuth();
+   const router = useRouter();
+-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '', profile: 'Colecionador' });
++  const [form, setForm] = useState({
++    name: '',
++    email: '',
++    password: '',
++    confirm: '',
++    profile: 'Colecionador',
++  });
+   const [games, setGames] = useState(['Magic']);
+   const [error, setError] = useState('');
+   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+-  const toggleGame = (game) => setGames((current) => current.includes(game) ? current.filter((item) => item !== game) : [...current, game]);
+-  const submit = async () => { if (!form.name.trim() || !form.email.includes('@') || form.password.length < 6 || form.password !== form.confirm) { setError('Confira nome, e-mail e senhas iguais com pelo menos 6 caracteres.'); return; } await signIn(form); router.replace('/(tabs)'); };
+-  return <ScrollView contentContainerStyle={styles.page}><Head><title>Criar conta | ManaTrade</title></Head><View style={styles.card}><Text style={styles.title}>Criar conta</Text>{['name','email','password','confirm'].map((key) => <View key={key}><Text style={styles.label}>{{ name:'Nome', email:'E-mail', password:'Senha', confirm:'Confirmar senha' }[key]}</Text><TextInput value={form[key]} onChangeText={(value) => update(key, value)} secureTextEntry={key === 'password' || key === 'confirm'} autoCapitalize={key === 'name' ? 'words' : 'none'} keyboardType={key === 'email' ? 'email-address' : 'default'} placeholderTextColor={theme.colors.textMuted} style={styles.input} /></View>)}<Text style={styles.label}>Perfil</Text><View style={styles.row}>{['Colecionador','Loja'].map((item) => <ChipFiltro key={item} label={item} active={form.profile === item} onPress={() => update('profile', item)} />)}</View><Text style={styles.label}>TCGs de interesse</Text><View style={styles.row}>{['Magic','Pokémon','Yu-Gi-Oh!','Lorcana'].map((item) => <ChipFiltro key={item} label={item} active={games.includes(item)} onPress={() => toggleGame(item)} />)}</View>{!!error && <Text style={styles.error}>{error}</Text>}<BotaoPrimario label="Criar conta" onPress={submit} /></View></ScrollView>;
++  const toggleGame = (game) =>
++    setGames((current) =>
++      current.includes(game) ? current.filter((item) => item !== game) : [...current, game],
++    );
++  const submit = async () => {
++    if (
++      !form.name.trim() ||
++      !form.email.includes('@') ||
++      form.password.length < 6 ||
++      form.password !== form.confirm
++    ) {
++      setError('Confira nome, e-mail e senhas iguais com pelo menos 6 caracteres.');
++      return;
++    }
++    await signIn(form);
++    router.replace('/(tabs)');
++  };
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>Criar conta | ManaTrade</title>
++      </Head>
++      <View style={styles.card}>
++        <Text style={styles.title}>Criar conta</Text>
++        {['name', 'email', 'password', 'confirm'].map((key) => (
++          <View key={key}>
++            <Text style={styles.label}>
++              {
++                { name: 'Nome', email: 'E-mail', password: 'Senha', confirm: 'Confirmar senha' }[
++                  key
++                ]
++              }
++            </Text>
++            <TextInput
++              value={form[key]}
++              onChangeText={(value) => update(key, value)}
++              secureTextEntry={key === 'password' || key === 'confirm'}
++              autoCapitalize={key === 'name' ? 'words' : 'none'}
++              keyboardType={key === 'email' ? 'email-address' : 'default'}
++              placeholderTextColor={theme.colors.textMuted}
++              style={styles.input}
++            />
++          </View>
++        ))}
++        <Text style={styles.label}>Perfil</Text>
++        <View style={styles.row}>
++          {['Colecionador', 'Loja'].map((item) => (
++            <ChipFiltro
++              key={item}
++              label={item}
++              active={form.profile === item}
++              onPress={() => update('profile', item)}
++            />
++          ))}
++        </View>
++        <Text style={styles.label}>TCGs de interesse</Text>
++        <View style={styles.row}>
++          {['Magic', 'Pokémon', 'Yu-Gi-Oh!', 'Lorcana'].map((item) => (
++            <ChipFiltro
++              key={item}
++              label={item}
++              active={games.includes(item)}
++              onPress={() => toggleGame(item)}
++            />
++          ))}
++        </View>
++        {!!error && <Text style={styles.error}>{error}</Text>}
++        <BotaoPrimario label="Criar conta" onPress={submit} />
++      </View>
++    </ScrollView>
++  );
+ }
+-const styles = StyleSheet.create({ page: { flexGrow: 1, alignItems: 'center', padding: theme.spacing.lg, backgroundColor: theme.colors.background }, card: { width: '100%', maxWidth: 480, gap: theme.spacing.md, padding: theme.spacing.xl, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.lg }, title: { color: theme.colors.text, fontSize: theme.typography.title, fontWeight: theme.typography.weight.bold }, label: { color: theme.colors.textMuted, fontSize: theme.typography.small, marginBottom: theme.spacing.xs }, input: { width: '100%', minHeight: 48, color: theme.colors.text, paddingHorizontal: theme.spacing.md, borderRadius: theme.radius.sm, borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.background }, row: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }, error: { color: theme.colors.danger } });
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    alignItems: 'center',
++    padding: theme.spacing.lg,
++    backgroundColor: theme.colors.background,
++  },
++  card: {
++    width: '100%',
++    maxWidth: 480,
++    gap: theme.spacing.md,
++    padding: theme.spacing.xl,
++    backgroundColor: theme.colors.surface,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    borderRadius: theme.radius.lg,
++  },
++  title: {
++    color: theme.colors.text,
++    fontSize: theme.typography.title,
++    fontWeight: theme.typography.weight.bold,
++  },
++  label: {
++    color: theme.colors.textMuted,
++    fontSize: theme.typography.small,
++    marginBottom: theme.spacing.xs,
++  },
++  input: {
++    width: '100%',
++    minHeight: 48,
++    color: theme.colors.text,
++    paddingHorizontal: theme.spacing.md,
++    borderRadius: theme.radius.sm,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    backgroundColor: theme.colors.background,
++  },
++  row: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
++  error: { color: theme.colors.danger },
++});
+diff --git a/app/auth/login.js b/app/auth/login.js
+index 9751ddb..3446c92 100644
+--- a/app/auth/login.js
++++ b/app/auth/login.js
+@@ -13,10 +13,94 @@ export default function Login() {
+   const [password, setPassword] = useState('');
+   const [error, setError] = useState('');
+   const submit = async () => {
+-    if (!email.includes('@') || password.length < 6) { setError('Informe um e-mail válido e senha com 6 caracteres.'); return; }
++    if (!email.includes('@') || password.length < 6) {
++      setError('Informe um e-mail válido e senha com 6 caracteres.');
++      return;
++    }
+     await signIn({ email });
+     router.replace('/(tabs)');
+   };
+-  return <ScrollView contentContainerStyle={styles.page}><Head><title>Entrar | ManaTrade</title></Head><View style={styles.card}><Text style={styles.brand}>ManaTrade</Text><Text style={styles.title}>Bem-vindo de volta</Text><Text style={styles.label}>E-mail</Text><TextInput autoCapitalize="none" keyboardType="email-address" placeholder="voce@email.com" placeholderTextColor={theme.colors.textMuted} value={email} onChangeText={setEmail} style={styles.input} /><Text style={styles.label}>Senha</Text><TextInput secureTextEntry placeholder="Mínimo 6 caracteres" placeholderTextColor={theme.colors.textMuted} value={password} onChangeText={setPassword} style={styles.input} />{!!error && <Text style={styles.error} accessibilityLiveRegion="polite">{error}</Text>}<BotaoPrimario label="Entrar" onPress={submit} /><Link href="/auth/cadastro" style={styles.link}>Criar uma conta</Link></View></ScrollView>;
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>Entrar | ManaTrade</title>
++      </Head>
++      <View style={styles.card}>
++        <Text style={styles.brand}>ManaTrade</Text>
++        <Text style={styles.title}>Bem-vindo de volta</Text>
++        <Text style={styles.label}>E-mail</Text>
++        <TextInput
++          autoCapitalize="none"
++          keyboardType="email-address"
++          placeholder="voce@email.com"
++          placeholderTextColor={theme.colors.textMuted}
++          value={email}
++          onChangeText={setEmail}
++          style={styles.input}
++        />
++        <Text style={styles.label}>Senha</Text>
++        <TextInput
++          secureTextEntry
++          placeholder="Mínimo 6 caracteres"
++          placeholderTextColor={theme.colors.textMuted}
++          value={password}
++          onChangeText={setPassword}
++          style={styles.input}
++        />
++        {!!error && (
++          <Text style={styles.error} accessibilityLiveRegion="polite">
++            {error}
++          </Text>
++        )}
++        <BotaoPrimario label="Entrar" onPress={submit} />
++        <Link href="/auth/cadastro" style={styles.link}>
++          Criar uma conta
++        </Link>
++      </View>
++    </ScrollView>
++  );
+ }
+-const styles = StyleSheet.create({ page: { flexGrow: 1, minHeight: '100%', alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg, backgroundColor: theme.colors.background }, card: { width: '100%', maxWidth: 480, gap: theme.spacing.md, padding: theme.spacing.xxl, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, brand: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold }, title: { color: theme.colors.text, fontSize: theme.typography.title, fontWeight: theme.typography.weight.bold, marginBottom: theme.spacing.sm }, label: { color: theme.colors.textMuted, fontSize: theme.typography.small }, input: { minHeight: 48, color: theme.colors.text, borderRadius: theme.radius.sm, borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.background, paddingHorizontal: theme.spacing.md }, error: { color: theme.colors.danger }, link: { minHeight: 44, color: theme.colors.accent, textAlign: 'center', paddingTop: theme.spacing.md } });
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    minHeight: '100%',
++    alignItems: 'center',
++    justifyContent: 'center',
++    padding: theme.spacing.lg,
++    backgroundColor: theme.colors.background,
++  },
++  card: {
++    width: '100%',
++    maxWidth: 480,
++    gap: theme.spacing.md,
++    padding: theme.spacing.xxl,
++    borderRadius: theme.radius.lg,
++    backgroundColor: theme.colors.surface,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++  },
++  brand: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold },
++  title: {
++    color: theme.colors.text,
++    fontSize: theme.typography.title,
++    fontWeight: theme.typography.weight.bold,
++    marginBottom: theme.spacing.sm,
++  },
++  label: { color: theme.colors.textMuted, fontSize: theme.typography.small },
++  input: {
++    minHeight: 48,
++    color: theme.colors.text,
++    borderRadius: theme.radius.sm,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    backgroundColor: theme.colors.background,
++    paddingHorizontal: theme.spacing.md,
++  },
++  error: { color: theme.colors.danger },
++  link: {
++    minHeight: 44,
++    color: theme.colors.accent,
++    textAlign: 'center',
++    paddingTop: theme.spacing.md,
++  },
++});
+diff --git a/app/carta/[id].js b/app/carta/[id].js
+index 2acd5eb..b78a444 100644
+--- a/app/carta/[id].js
++++ b/app/carta/[id].js
+@@ -13,7 +13,116 @@ import { cards } from '../../src/mocks/dados';
+ import { theme } from '../../src/theme';
+ 
+ export default function CartaDetalhe() {
+-  const { id } = useLocalSearchParams(); const card = cards.find((item) => item.id === id) || cards[0]; const [desired, setDesired] = useState(false);
+-  return <ScrollView contentContainerStyle={styles.page}><Head><title>{card.name} | ManaTrade</title></Head><Cabecalho title={card.name} back /><View style={styles.hero}><CardCapa item={card} /><View style={styles.summary}><Text style={styles.game}>{card.game}</Text><Text style={styles.meta}>{card.edition} · {card.rarity}</Text><PrecoTag value={card.price} /><Text style={styles.avg}>Preço médio de mercado</Text><SeloCondicao value={card.condition} /></View></View><Text style={styles.title}>Histórico de preço</Text><View style={styles.chart}><View style={[styles.point, { left: '10%', bottom: '22%' }]} /><View style={[styles.point, { left: '30%', bottom: '42%' }]} /><View style={[styles.point, { left: '52%', bottom: '34%' }]} /><View style={[styles.point, { left: '74%', bottom: '70%' }]} /><View style={[styles.line, { left: '10%', bottom: '25%', width: '64%', transform: [{ rotate: '-16deg' }] }]} /></View><Text style={styles.title}>Condições disponíveis</Text><View style={styles.conditions}>{['NM','SP','MP','HP'].map((item) => <SeloCondicao key={item} value={item} />)}</View><Text style={styles.title}>Anúncios à venda</Text><ListaItem title="Colecionador JP" subtitle="Envio pelo ManaTrade" meta={`R$ ${card.price.toFixed(2)}`} /><ListaItem title="Arena Nexus" subtitle="Retirada na loja" meta={`R$ ${(card.price + 18).toFixed(2)}`} /><View style={styles.actions}><BotaoPrimario label="Comprar / Fazer proposta" /><BotaoSecundario label={desired ? 'Remover dos desejos' : 'Adicionar aos desejos'} onPress={() => setDesired((current) => !current)} /><BotaoSecundario label="Consignar" /></View></ScrollView>;
++  const { id } = useLocalSearchParams();
++  const card = cards.find((item) => item.id === id) || cards[0];
++  const [desired, setDesired] = useState(false);
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>{card.name} | ManaTrade</title>
++      </Head>
++      <Cabecalho title={card.name} back />
++      <View style={styles.hero}>
++        <CardCapa item={card} />
++        <View style={styles.summary}>
++          <Text style={styles.game}>{card.game}</Text>
++          <Text style={styles.meta}>
++            {card.edition} · {card.rarity}
++          </Text>
++          <PrecoTag value={card.price} />
++          <Text style={styles.avg}>Preço médio de mercado</Text>
++          <SeloCondicao value={card.condition} />
++        </View>
++      </View>
++      <Text style={styles.title}>Histórico de preço</Text>
++      <View style={styles.chart}>
++        <View style={[styles.point, { left: '10%', bottom: '22%' }]} />
++        <View style={[styles.point, { left: '30%', bottom: '42%' }]} />
++        <View style={[styles.point, { left: '52%', bottom: '34%' }]} />
++        <View style={[styles.point, { left: '74%', bottom: '70%' }]} />
++        <View
++          style={[
++            styles.line,
++            { left: '10%', bottom: '25%', width: '64%', transform: [{ rotate: '-16deg' }] },
++          ]}
++        />
++      </View>
++      <Text style={styles.title}>Condições disponíveis</Text>
++      <View style={styles.conditions}>
++        {['NM', 'SP', 'MP', 'HP'].map((item) => (
++          <SeloCondicao key={item} value={item} />
++        ))}
++      </View>
++      <Text style={styles.title}>Anúncios à venda</Text>
++      <ListaItem
++        title="Colecionador JP"
++        subtitle="Envio pelo ManaTrade"
++        meta={`R$ ${card.price.toFixed(2)}`}
++      />
++      <ListaItem
++        title="Arena Nexus"
++        subtitle="Retirada na loja"
++        meta={`R$ ${(card.price + 18).toFixed(2)}`}
++      />
++      <View style={styles.actions}>
++        <BotaoPrimario label="Comprar / Fazer proposta" />
++        <BotaoSecundario
++          label={desired ? 'Remover dos desejos' : 'Adicionar aos desejos'}
++          onPress={() => setDesired((current) => !current)}
++        />
++        <BotaoSecundario label="Consignar" />
++      </View>
++    </ScrollView>
++  );
+ }
+-const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 1320, alignSelf: 'center', width: '100%', padding: theme.spacing.lg }, hero: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.xl }, summary: { flexGrow: 1, maxWidth: 420, gap: theme.spacing.sm, justifyContent: 'center' }, game: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold }, meta: { color: theme.colors.textMuted }, avg: { color: theme.colors.textMuted, fontSize: theme.typography.small }, title: { color: theme.colors.text, fontSize: theme.typography.h2, fontWeight: theme.typography.weight.bold, marginTop: theme.spacing.xxl, marginBottom: theme.spacing.md }, chart: { height: 180, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.md, backgroundColor: theme.colors.surface, position: 'relative', overflow: 'hidden' }, point: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: theme.colors.accent, zIndex: 2 }, line: { position: 'absolute', height: 2, backgroundColor: theme.colors.accent, transformOrigin: 'left center' }, conditions: { flexDirection: 'row', gap: theme.spacing.sm }, actions: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm, marginTop: theme.spacing.xl } });
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 1320,
++    alignSelf: 'center',
++    width: '100%',
++    padding: theme.spacing.lg,
++  },
++  hero: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.xl },
++  summary: { flexGrow: 1, maxWidth: 420, gap: theme.spacing.sm, justifyContent: 'center' },
++  game: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold },
++  meta: { color: theme.colors.textMuted },
++  avg: { color: theme.colors.textMuted, fontSize: theme.typography.small },
++  title: {
++    color: theme.colors.text,
++    fontSize: theme.typography.h2,
++    fontWeight: theme.typography.weight.bold,
++    marginTop: theme.spacing.xxl,
++    marginBottom: theme.spacing.md,
++  },
++  chart: {
++    height: 180,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    borderRadius: theme.radius.md,
++    backgroundColor: theme.colors.surface,
++    position: 'relative',
++    overflow: 'hidden',
++  },
++  point: {
++    position: 'absolute',
++    width: 12,
++    height: 12,
++    borderRadius: 6,
++    backgroundColor: theme.colors.accent,
++    zIndex: 2,
++  },
++  line: {
++    position: 'absolute',
++    height: 2,
++    backgroundColor: theme.colors.accent,
++    transformOrigin: 'left center',
++  },
++  conditions: { flexDirection: 'row', gap: theme.spacing.sm },
++  actions: {
++    flexDirection: 'row',
++    flexWrap: 'wrap',
++    gap: theme.spacing.sm,
++    marginTop: theme.spacing.xl,
++  },
++});
+diff --git a/app/comunidade.js b/app/comunidade.js
+index c740f48..9b9f13e 100644
+--- a/app/comunidade.js
++++ b/app/comunidade.js
+@@ -1,2 +1,132 @@
+-import Head from 'expo-router/head';import { useEffect,useState } from 'react';import { Pressable,ScrollView,StyleSheet,Text,View } from 'react-native';import Cabecalho from '../src/components/Cabecalho';import EstadoErro from '../src/components/EstadoErro';import EstadoVazio from '../src/components/EstadoVazio';import Skeleton from '../src/components/Skeleton';import { getEvents } from '../src/services/api';import { theme } from '../src/theme';
+-export default function Comunidade(){const [events,setEvents]=useState([]);const [status,setStatus]=useState('loading');const [going,setGoing]=useState([]);const load=async()=>{setStatus('loading');try{setEvents(await getEvents());setStatus('ready')}catch{setStatus('error')}};useEffect(()=>{load()},[]);if(status==='loading')return <View style={styles.page}><Skeleton height={260}/></View>;if(status==='error')return <EstadoErro onRetry={load}/>;return <ScrollView contentContainerStyle={styles.page}><Head><title>Comunidade e eventos | ManaTrade</title></Head><Cabecalho title="Comunidade e eventos" back /><Text style={styles.feedTitle}>Próximos encontros</Text>{events.length?events.map((event)=><View key={event.id} style={styles.event}><View style={styles.date}><Text style={styles.dateText}>{event.date.slice(0,8)}</Text></View><View style={styles.copy}><Text style={styles.title}>{event.title}</Text><Text style={styles.meta}>{event.store} · {event.game}</Text><Text style={styles.time}>{event.date}</Text><Pressable accessibilityRole="button" style={[styles.button,going.includes(event.id)&&styles.going]} onPress={()=>setGoing((current)=>current.includes(event.id)?current.filter((id)=>id!==event.id):[...current,event.id])}><Text style={styles.buttonText}>{going.includes(event.id)?'Vou participar ✓':'Vou participar'}</Text></Pressable></View></View>):<EstadoVazio titulo="Nenhum evento"/>}</ScrollView>}const styles=StyleSheet.create({page:{flexGrow:1,maxWidth:1320,width:'100%',alignSelf:'center',padding:theme.spacing.lg},feedTitle:{color:theme.colors.text,fontSize:theme.typography.h2,fontWeight:theme.typography.weight.bold,marginBottom:theme.spacing.lg},event:{flexDirection:'row',gap:theme.spacing.lg,padding:theme.spacing.lg,marginBottom:theme.spacing.md,borderRadius:theme.radius.md,backgroundColor:theme.colors.surface,borderWidth:1,borderColor:theme.colors.border},date:{width:64,height:64,alignItems:'center',justifyContent:'center',borderRadius:theme.radius.sm,backgroundColor:theme.colors.accent},dateText:{color:theme.colors.background,fontWeight:theme.typography.weight.bold,textAlign:'center'},copy:{flex:1,gap:theme.spacing.xs},title:{color:theme.colors.text,fontSize:theme.typography.h3,fontWeight:theme.typography.weight.bold},meta:{color:theme.colors.textMuted},time:{color:theme.colors.accent,fontSize:theme.typography.small},button:{alignSelf:'flex-start',minHeight:44,justifyContent:'center',paddingHorizontal:theme.spacing.lg,marginTop:theme.spacing.sm,borderRadius:theme.radius.sm,backgroundColor:theme.colors.greenStart},going:{backgroundColor:theme.colors.greenEnd},buttonText:{color:theme.colors.background,fontWeight:theme.typography.weight.bold}});
++import Head from 'expo-router/head';
++import { useEffect, useState } from 'react';
++import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
++import Cabecalho from '../src/components/Cabecalho';
++import EstadoErro from '../src/components/EstadoErro';
++import EstadoVazio from '../src/components/EstadoVazio';
++import Skeleton from '../src/components/Skeleton';
++import { getEvents } from '../src/services/api';
++import { theme } from '../src/theme';
++export default function Comunidade() {
++  const [events, setEvents] = useState([]);
++  const [status, setStatus] = useState('loading');
++  const [going, setGoing] = useState([]);
++  const load = async () => {
++    setStatus('loading');
++    try {
++      setEvents(await getEvents());
++      setStatus('ready');
++    } catch {
++      setStatus('error');
++    }
++  };
++  useEffect(() => {
++    load();
++  }, []);
++  if (status === 'loading')
++    return (
++      <View style={styles.page}>
++        <Skeleton height={260} />
++      </View>
++    );
++  if (status === 'error') return <EstadoErro onRetry={load} />;
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>Comunidade e eventos | ManaTrade</title>
++      </Head>
++      <Cabecalho title="Comunidade e eventos" back />
++      <Text style={styles.feedTitle}>Próximos encontros</Text>
++      {events.length ? (
++        events.map((event) => (
++          <View key={event.id} style={styles.event}>
++            <View style={styles.date}>
++              <Text style={styles.dateText}>{event.date.slice(0, 8)}</Text>
++            </View>
++            <View style={styles.copy}>
++              <Text style={styles.title}>{event.title}</Text>
++              <Text style={styles.meta}>
++                {event.store} · {event.game}
++              </Text>
++              <Text style={styles.time}>{event.date}</Text>
++              <Pressable
++                accessibilityRole="button"
++                style={[styles.button, going.includes(event.id) && styles.going]}
++                onPress={() =>
++                  setGoing((current) =>
++                    current.includes(event.id)
++                      ? current.filter((id) => id !== event.id)
++                      : [...current, event.id],
++                  )
++                }
++              >
++                <Text style={styles.buttonText}>
++                  {going.includes(event.id) ? 'Vou participar ✓' : 'Vou participar'}
++                </Text>
++              </Pressable>
++            </View>
++          </View>
++        ))
++      ) : (
++        <EstadoVazio titulo="Nenhum evento" />
++      )}
++    </ScrollView>
++  );
++}
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 1320,
++    width: '100%',
++    alignSelf: 'center',
++    padding: theme.spacing.lg,
++  },
++  feedTitle: {
++    color: theme.colors.text,
++    fontSize: theme.typography.h2,
++    fontWeight: theme.typography.weight.bold,
++    marginBottom: theme.spacing.lg,
++  },
++  event: {
++    flexDirection: 'row',
++    gap: theme.spacing.lg,
++    padding: theme.spacing.lg,
++    marginBottom: theme.spacing.md,
++    borderRadius: theme.radius.md,
++    backgroundColor: theme.colors.surface,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++  },
++  date: {
++    width: 64,
++    height: 64,
++    alignItems: 'center',
++    justifyContent: 'center',
++    borderRadius: theme.radius.sm,
++    backgroundColor: theme.colors.accent,
++  },
++  dateText: {
++    color: theme.colors.background,
++    fontWeight: theme.typography.weight.bold,
++    textAlign: 'center',
++  },
++  copy: { flex: 1, gap: theme.spacing.xs },
++  title: {
++    color: theme.colors.text,
++    fontSize: theme.typography.h3,
++    fontWeight: theme.typography.weight.bold,
++  },
++  meta: { color: theme.colors.textMuted },
++  time: { color: theme.colors.accent, fontSize: theme.typography.small },
++  button: {
++    alignSelf: 'flex-start',
++    minHeight: 44,
++    justifyContent: 'center',
++    paddingHorizontal: theme.spacing.lg,
++    marginTop: theme.spacing.sm,
++    borderRadius: theme.radius.sm,
++    backgroundColor: theme.colors.greenStart,
++  },
++  going: { backgroundColor: theme.colors.greenEnd },
++  buttonText: { color: theme.colors.background, fontWeight: theme.typography.weight.bold },
++});
+diff --git a/app/configuracoes.js b/app/configuracoes.js
+index f9602b2..207c5c8 100644
+--- a/app/configuracoes.js
++++ b/app/configuracoes.js
+@@ -1,2 +1,127 @@
+-import Head from 'expo-router/head';import { useState } from 'react';import { Pressable,ScrollView,StyleSheet,Switch,Text,TextInput,View } from 'react-native';import Cabecalho from '../src/components/Cabecalho';import ChipFiltro from '../src/components/ChipFiltro';import BotaoPrimario from '../src/components/BotaoPrimario';import ModalConfirmacao from '../src/components/ModalConfirmacao';import { useAuth } from '../src/contexts/AuthContext';import { theme } from '../src/theme';
+-export default function Configuracoes(){const {user}=useAuth();const [profile,setProfile]=useState({name:user?.name||'Jonathan Silva',email:user?.email||''});const [games,setGames]=useState(['Magic','Pokémon']);const [notifications,setNotifications]=useState(true);const [privateProfile,setPrivateProfile]=useState(false);const [saved,setSaved]=useState(false);const toggle=(value)=>setGames((current)=>current.includes(value)?current.filter((item)=>item!==value):[...current,value]);return <ScrollView contentContainerStyle={styles.page}><Head><title>Configurações | ManaTrade</title></Head><Cabecalho title="Configurações" back/><View style={styles.section}><Text style={styles.title}>Perfil</Text>{[['name','Nome'],['email','E-mail']].map(([key,label])=><View key={key}><Text style={styles.label}>{label}</Text><TextInput value={profile[key]} onChangeText={(value)=>setProfile((current)=>({...current,[key]:value}))} style={styles.input}/></View>)}</View><View style={styles.section}><Text style={styles.title}>Jogos favoritos</Text><View style={styles.row}>{['Magic','Pokémon','Yu-Gi-Oh!','Lorcana'].map((item)=><ChipFiltro key={item} label={item} active={games.includes(item)} onPress={()=>toggle(item)} />)}</View></View><View style={styles.section}><Setting label="Notificações" value={notifications} onChange={setNotifications}/><Setting label="Perfil privado" value={privateProfile} onChange={setPrivateProfile}/></View><BotaoPrimario label={saved?'Alterações salvas':'Salvar alterações'} onPress={()=>setSaved(true)}/></ScrollView>}function Setting({label,value,onChange}){return <View style={styles.setting}><Text style={styles.settingText}>{label}</Text><Switch value={value} onValueChange={onChange} thumbColor={value?theme.colors.accent:theme.colors.textMuted} trackColor={{false:theme.colors.border,true:'#2f6f93'}} /></View>}const styles=StyleSheet.create({page:{flexGrow:1,maxWidth:760,width:'100%',alignSelf:'center',padding:theme.spacing.lg,gap:theme.spacing.lg},section:{gap:theme.spacing.md,padding:theme.spacing.lg,borderRadius:theme.radius.md,backgroundColor:theme.colors.surface,borderWidth:1,borderColor:theme.colors.border},title:{color:theme.colors.text,fontSize:theme.typography.h3,fontWeight:theme.typography.weight.bold},label:{color:theme.colors.textMuted,fontSize:theme.typography.small,marginBottom:theme.spacing.xs},input:{minHeight:48,color:theme.colors.text,borderWidth:1,borderColor:theme.colors.border,borderRadius:theme.radius.sm,backgroundColor:theme.colors.background,paddingHorizontal:theme.spacing.md},row:{flexDirection:'row',flexWrap:'wrap',gap:theme.spacing.sm},setting:{minHeight:44,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},settingText:{color:theme.colors.text,fontWeight:theme.typography.weight.medium}});
++import Head from 'expo-router/head';
++import { useState } from 'react';
++import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
++import Cabecalho from '../src/components/Cabecalho';
++import ChipFiltro from '../src/components/ChipFiltro';
++import BotaoPrimario from '../src/components/BotaoPrimario';
++import ModalConfirmacao from '../src/components/ModalConfirmacao';
++import { useAuth } from '../src/contexts/AuthContext';
++import { theme } from '../src/theme';
++export default function Configuracoes() {
++  const { user } = useAuth();
++  const [profile, setProfile] = useState({
++    name: user?.name || 'Jonathan Silva',
++    email: user?.email || '',
++  });
++  const [games, setGames] = useState(['Magic', 'Pokémon']);
++  const [notifications, setNotifications] = useState(true);
++  const [privateProfile, setPrivateProfile] = useState(false);
++  const [saved, setSaved] = useState(false);
++  const toggle = (value) =>
++    setGames((current) =>
++      current.includes(value) ? current.filter((item) => item !== value) : [...current, value],
++    );
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>Configurações | ManaTrade</title>
++      </Head>
++      <Cabecalho title="Configurações" back />
++      <View style={styles.section}>
++        <Text style={styles.title}>Perfil</Text>
++        {[
++          ['name', 'Nome'],
++          ['email', 'E-mail'],
++        ].map(([key, label]) => (
++          <View key={key}>
++            <Text style={styles.label}>{label}</Text>
++            <TextInput
++              value={profile[key]}
++              onChangeText={(value) => setProfile((current) => ({ ...current, [key]: value }))}
++              style={styles.input}
++            />
++          </View>
++        ))}
++      </View>
++      <View style={styles.section}>
++        <Text style={styles.title}>Jogos favoritos</Text>
++        <View style={styles.row}>
++          {['Magic', 'Pokémon', 'Yu-Gi-Oh!', 'Lorcana'].map((item) => (
++            <ChipFiltro
++              key={item}
++              label={item}
++              active={games.includes(item)}
++              onPress={() => toggle(item)}
++            />
++          ))}
++        </View>
++      </View>
++      <View style={styles.section}>
++        <Setting label="Notificações" value={notifications} onChange={setNotifications} />
++        <Setting label="Perfil privado" value={privateProfile} onChange={setPrivateProfile} />
++      </View>
++      <BotaoPrimario
++        label={saved ? 'Alterações salvas' : 'Salvar alterações'}
++        onPress={() => setSaved(true)}
++      />
++    </ScrollView>
++  );
++}
++function Setting({ label, value, onChange }) {
++  return (
++    <View style={styles.setting}>
++      <Text style={styles.settingText}>{label}</Text>
++      <Switch
++        value={value}
++        onValueChange={onChange}
++        thumbColor={value ? theme.colors.accent : theme.colors.textMuted}
++        trackColor={{ false: theme.colors.border, true: '#2f6f93' }}
++      />
++    </View>
++  );
++}
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 760,
++    width: '100%',
++    alignSelf: 'center',
++    padding: theme.spacing.lg,
++    gap: theme.spacing.lg,
++  },
++  section: {
++    gap: theme.spacing.md,
++    padding: theme.spacing.lg,
++    borderRadius: theme.radius.md,
++    backgroundColor: theme.colors.surface,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++  },
++  title: {
++    color: theme.colors.text,
++    fontSize: theme.typography.h3,
++    fontWeight: theme.typography.weight.bold,
++  },
++  label: {
++    color: theme.colors.textMuted,
++    fontSize: theme.typography.small,
++    marginBottom: theme.spacing.xs,
++  },
++  input: {
++    minHeight: 48,
++    color: theme.colors.text,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    borderRadius: theme.radius.sm,
++    backgroundColor: theme.colors.background,
++    paddingHorizontal: theme.spacing.md,
++  },
++  row: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
++  setting: {
++    minHeight: 44,
++    flexDirection: 'row',
++    alignItems: 'center',
++    justifyContent: 'space-between',
++  },
++  settingText: { color: theme.colors.text, fontWeight: theme.typography.weight.medium },
++});
+diff --git a/app/consignacoes.js b/app/consignacoes.js
+index 99b1fc7..d44f23b 100644
+--- a/app/consignacoes.js
++++ b/app/consignacoes.js
+@@ -1,2 +1,97 @@
+-import Head from 'expo-router/head';import { useEffect,useState } from 'react';import { ScrollView,StyleSheet,Text,View } from 'react-native';import Cabecalho from '../src/components/Cabecalho';import EstadoErro from '../src/components/EstadoErro';import EstadoVazio from '../src/components/EstadoVazio';import Skeleton from '../src/components/Skeleton';import { getConsignments } from '../src/services/api';import { theme } from '../src/theme';
+-export default function Consignacoes(){const [items,setItems]=useState([]);const [status,setStatus]=useState('loading');const load=async()=>{setStatus('loading');try{setItems(await getConsignments());setStatus('ready')}catch{setStatus('error')}};useEffect(()=>{load()},[]);if(status==='loading')return <View style={styles.page}><Skeleton height={260}/></View>;if(status==='error')return <EstadoErro onRetry={load}/>;return <ScrollView contentContainerStyle={styles.page}><Head><title>Consignações | ManaTrade</title></Head><Cabecalho title="Consignações" back />{items.length?items.map((item)=><View key={item.id} style={styles.card}><Text style={styles.name}>{item.card}</Text><Text style={styles.status}>{item.status}</Text><View style={styles.timeline}>{['Enviada','Em análise','À venda','Vendida','Repasse pago'].map((step,index)=><View key={step} style={styles.step}><View style={[styles.dot,index<=item.step&&styles.done]}/><Text style={[styles.stepText,index<=item.step&&styles.doneText]}>{step}</Text></View>)}</View><Text style={styles.value}>Repasse previsto: R$ {item.repasse.toFixed(2)}</Text></View>):<EstadoVazio titulo="Sem consignações"/>}</ScrollView>}const styles=StyleSheet.create({page:{flexGrow:1,maxWidth:1320,width:'100%',alignSelf:'center',padding:theme.spacing.lg},card:{padding:theme.spacing.lg,borderRadius:theme.radius.md,backgroundColor:theme.colors.surface,borderWidth:1,borderColor:theme.colors.border},name:{color:theme.colors.text,fontSize:theme.typography.h2,fontWeight:theme.typography.weight.bold},status:{color:theme.colors.accent,marginTop:theme.spacing.sm},timeline:{flexDirection:'row',flexWrap:'wrap',gap:theme.spacing.lg,marginVertical:theme.spacing.xl},step:{width:92,gap:theme.spacing.sm},dot:{width:14,height:14,borderRadius:7,backgroundColor:theme.colors.border},done:{backgroundColor:theme.colors.accent},stepText:{color:theme.colors.textMuted,fontSize:theme.typography.small},doneText:{color:theme.colors.text},value:{color:theme.colors.text,fontWeight:theme.typography.weight.bold}});
++import Head from 'expo-router/head';
++import { useEffect, useState } from 'react';
++import { ScrollView, StyleSheet, Text, View } from 'react-native';
++import Cabecalho from '../src/components/Cabecalho';
++import EstadoErro from '../src/components/EstadoErro';
++import EstadoVazio from '../src/components/EstadoVazio';
++import Skeleton from '../src/components/Skeleton';
++import { getConsignments } from '../src/services/api';
++import { theme } from '../src/theme';
++export default function Consignacoes() {
++  const [items, setItems] = useState([]);
++  const [status, setStatus] = useState('loading');
++  const load = async () => {
++    setStatus('loading');
++    try {
++      setItems(await getConsignments());
++      setStatus('ready');
++    } catch {
++      setStatus('error');
++    }
++  };
++  useEffect(() => {
++    load();
++  }, []);
++  if (status === 'loading')
++    return (
++      <View style={styles.page}>
++        <Skeleton height={260} />
++      </View>
++    );
++  if (status === 'error') return <EstadoErro onRetry={load} />;
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>Consignações | ManaTrade</title>
++      </Head>
++      <Cabecalho title="Consignações" back />
++      {items.length ? (
++        items.map((item) => (
++          <View key={item.id} style={styles.card}>
++            <Text style={styles.name}>{item.card}</Text>
++            <Text style={styles.status}>{item.status}</Text>
++            <View style={styles.timeline}>
++              {['Enviada', 'Em análise', 'À venda', 'Vendida', 'Repasse pago'].map(
++                (step, index) => (
++                  <View key={step} style={styles.step}>
++                    <View style={[styles.dot, index <= item.step && styles.done]} />
++                    <Text style={[styles.stepText, index <= item.step && styles.doneText]}>
++                      {step}
++                    </Text>
++                  </View>
++                ),
++              )}
++            </View>
++            <Text style={styles.value}>Repasse previsto: R$ {item.repasse.toFixed(2)}</Text>
++          </View>
++        ))
++      ) : (
++        <EstadoVazio titulo="Sem consignações" />
++      )}
++    </ScrollView>
++  );
++}
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 1320,
++    width: '100%',
++    alignSelf: 'center',
++    padding: theme.spacing.lg,
++  },
++  card: {
++    padding: theme.spacing.lg,
++    borderRadius: theme.radius.md,
++    backgroundColor: theme.colors.surface,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++  },
++  name: {
++    color: theme.colors.text,
++    fontSize: theme.typography.h2,
++    fontWeight: theme.typography.weight.bold,
++  },
++  status: { color: theme.colors.accent, marginTop: theme.spacing.sm },
++  timeline: {
++    flexDirection: 'row',
++    flexWrap: 'wrap',
++    gap: theme.spacing.lg,
++    marginVertical: theme.spacing.xl,
++  },
++  step: { width: 92, gap: theme.spacing.sm },
++  dot: { width: 14, height: 14, borderRadius: 7, backgroundColor: theme.colors.border },
++  done: { backgroundColor: theme.colors.accent },
++  stepText: { color: theme.colors.textMuted, fontSize: theme.typography.small },
++  doneText: { color: theme.colors.text },
++  value: { color: theme.colors.text, fontWeight: theme.typography.weight.bold },
++});
+diff --git a/app/loja/[id].js b/app/loja/[id].js
+index ece5330..ec8457d 100644
+--- a/app/loja/[id].js
++++ b/app/loja/[id].js
+@@ -8,5 +8,67 @@ import ListaItem from '../../src/components/ListaItem';
+ import { stores, events } from '../../src/mocks/dados';
+ import { theme } from '../../src/theme';
+ 
+-export default function LojaDetalhe(){const {id}=useLocalSearchParams();const store=stores.find((item)=>item.id===id)||stores[0];const [participating,setParticipating]=useState(false);return <ScrollView contentContainerStyle={styles.page}><Head><title>{store.name} | ManaTrade</title></Head><Cabecalho title={store.name} back/><View style={styles.info}><Text style={styles.badge}>{store.consign?'Aceita consignação':'Loja parceira'}</Text><Text style={styles.text}>{store.distance} · {store.hours}</Text><Text style={styles.text}>Jogos: {store.games.join(', ')}</Text><Text style={styles.rating}>Avaliação 4,8 · 126 avaliações</Text></View><Text style={styles.title}>Eventos</Text>{events.filter((item)=>item.store===store.name).map((item)=><ListaItem key={item.id} title={item.title} subtitle={`${item.date} · ${item.game}`} meta={participating?'Confirmado':undefined}/>)}<View style={styles.actions}><BotaoPrimario label="Consignar cartas aqui"/><BotaoPrimario label={participating?'Participação confirmada':'Vou participar'} onPress={()=>setParticipating(true)} /></View></ScrollView>}
+-const styles=StyleSheet.create({page:{flexGrow:1,maxWidth:1320,width:'100%',alignSelf:'center',padding:theme.spacing.lg},info:{gap:theme.spacing.sm,padding:theme.spacing.lg,borderRadius:theme.radius.md,backgroundColor:theme.colors.surface},badge:{color:theme.colors.accent,fontWeight:theme.typography.weight.bold},text:{color:theme.colors.textMuted},rating:{color:theme.colors.text},title:{color:theme.colors.text,fontSize:theme.typography.h2,fontWeight:theme.typography.weight.bold,marginVertical:theme.spacing.lg},actions:{gap:theme.spacing.sm,marginTop:theme.spacing.xl}});
++export default function LojaDetalhe() {
++  const { id } = useLocalSearchParams();
++  const store = stores.find((item) => item.id === id) || stores[0];
++  const [participating, setParticipating] = useState(false);
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>{store.name} | ManaTrade</title>
++      </Head>
++      <Cabecalho title={store.name} back />
++      <View style={styles.info}>
++        <Text style={styles.badge}>{store.consign ? 'Aceita consignação' : 'Loja parceira'}</Text>
++        <Text style={styles.text}>
++          {store.distance} · {store.hours}
++        </Text>
++        <Text style={styles.text}>Jogos: {store.games.join(', ')}</Text>
++        <Text style={styles.rating}>Avaliação 4,8 · 126 avaliações</Text>
++      </View>
++      <Text style={styles.title}>Eventos</Text>
++      {events
++        .filter((item) => item.store === store.name)
++        .map((item) => (
++          <ListaItem
++            key={item.id}
++            title={item.title}
++            subtitle={`${item.date} · ${item.game}`}
++            meta={participating ? 'Confirmado' : undefined}
++          />
++        ))}
++      <View style={styles.actions}>
++        <BotaoPrimario label="Consignar cartas aqui" />
++        <BotaoPrimario
++          label={participating ? 'Participação confirmada' : 'Vou participar'}
++          onPress={() => setParticipating(true)}
++        />
++      </View>
++    </ScrollView>
++  );
++}
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 1320,
++    width: '100%',
++    alignSelf: 'center',
++    padding: theme.spacing.lg,
++  },
++  info: {
++    gap: theme.spacing.sm,
++    padding: theme.spacing.lg,
++    borderRadius: theme.radius.md,
++    backgroundColor: theme.colors.surface,
++  },
++  badge: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold },
++  text: { color: theme.colors.textMuted },
++  rating: { color: theme.colors.text },
++  title: {
++    color: theme.colors.text,
++    fontSize: theme.typography.h2,
++    fontWeight: theme.typography.weight.bold,
++    marginVertical: theme.spacing.lg,
++  },
++  actions: { gap: theme.spacing.sm, marginTop: theme.spacing.xl },
++});
+diff --git a/app/lojas.js b/app/lojas.js
+index 254228b..c0af8d3 100644
+--- a/app/lojas.js
++++ b/app/lojas.js
+@@ -12,7 +12,92 @@ import Skeleton from '../src/components/Skeleton';
+ import { getStores } from '../src/services/api';
+ import { theme } from '../src/theme';
+ 
+-export default function Lojas(){const [stores,setStores]=useState([]);const [status,setStatus]=useState('loading');const [view,setView]=useState('lista');const [location,setLocation]=useState(false);const load=async()=>{setStatus('loading');try{setStores(await getStores());setStatus('ready')}catch{setStatus('error')}};useEffect(()=>{load()},[]);if(status==='loading')return <View style={styles.page}><Skeleton height={260}/></View>;if(status==='error')return <EstadoErro onRetry={load}/>;
+-return <ScrollView contentContainerStyle={styles.page}><Head><title>Lojas próximas | ManaTrade</title></Head><Cabecalho title="Lojas próximas" back /><View style={styles.row}>{['lista','mapa'].map((item)=><ChipFiltro key={item} label={item==='lista'?'Lista':'Mapa'} active={view===item} onPress={()=>setView(item)} />)}</View>{location?<EstadoErro texto="Localização negada. Permita o acesso à localização nas configurações do navegador." onRetry={()=>setLocation(false)} />:view==='mapa'?<><Mapa stores={stores}/><View style={styles.row}>{stores.map((store)=><ChipFiltro key={store.id} label={store.name} onPress={()=>router.push(`/loja/${store.id}`)} />)}</View></>:stores.length?stores.map((store)=><ListaItem key={store.id} title={store.name} subtitle={`${store.hours} · ${store.games.join(', ')}`} meta={`${store.distance} ${store.consign?'· Consignação':''}`} onPress={()=>router.push(`/loja/${store.id}`)} />):<EstadoVazio titulo="Nenhuma loja próxima"/>}</ScrollView>;
++export default function Lojas() {
++  const [stores, setStores] = useState([]);
++  const [status, setStatus] = useState('loading');
++  const [view, setView] = useState('lista');
++  const [location, setLocation] = useState(false);
++  const load = async () => {
++    setStatus('loading');
++    try {
++      setStores(await getStores());
++      setStatus('ready');
++    } catch {
++      setStatus('error');
++    }
++  };
++  useEffect(() => {
++    load();
++  }, []);
++  if (status === 'loading')
++    return (
++      <View style={styles.page}>
++        <Skeleton height={260} />
++      </View>
++    );
++  if (status === 'error') return <EstadoErro onRetry={load} />;
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>Lojas próximas | ManaTrade</title>
++      </Head>
++      <Cabecalho title="Lojas próximas" back />
++      <View style={styles.row}>
++        {['lista', 'mapa'].map((item) => (
++          <ChipFiltro
++            key={item}
++            label={item === 'lista' ? 'Lista' : 'Mapa'}
++            active={view === item}
++            onPress={() => setView(item)}
++          />
++        ))}
++      </View>
++      {location ? (
++        <EstadoErro
++          texto="Localização negada. Permita o acesso à localização nas configurações do navegador."
++          onRetry={() => setLocation(false)}
++        />
++      ) : view === 'mapa' ? (
++        <>
++          <Mapa stores={stores} />
++          <View style={styles.row}>
++            {stores.map((store) => (
++              <ChipFiltro
++                key={store.id}
++                label={store.name}
++                onPress={() => router.push(`/loja/${store.id}`)}
++              />
++            ))}
++          </View>
++        </>
++      ) : stores.length ? (
++        stores.map((store) => (
++          <ListaItem
++            key={store.id}
++            title={store.name}
++            subtitle={`${store.hours} · ${store.games.join(', ')}`}
++            meta={`${store.distance} ${store.consign ? '· Consignação' : ''}`}
++            onPress={() => router.push(`/loja/${store.id}`)}
++          />
++        ))
++      ) : (
++        <EstadoVazio titulo="Nenhuma loja próxima" />
++      )}
++    </ScrollView>
++  );
+ }
+-const styles=StyleSheet.create({page:{flexGrow:1,maxWidth:1320,width:'100%',alignSelf:'center',padding:theme.spacing.lg},row:{flexDirection:'row',flexWrap:'wrap',gap:theme.spacing.sm,marginBottom:theme.spacing.lg}});
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 1320,
++    width: '100%',
++    alignSelf: 'center',
++    padding: theme.spacing.lg,
++  },
++  row: {
++    flexDirection: 'row',
++    flexWrap: 'wrap',
++    gap: theme.spacing.sm,
++    marginBottom: theme.spacing.lg,
++  },
++});
+diff --git a/app/meus-anuncios.js b/app/meus-anuncios.js
+index 935d70c..707531b 100644
+--- a/app/meus-anuncios.js
++++ b/app/meus-anuncios.js
+@@ -12,9 +12,63 @@ import { getAds } from '../src/services/api';
+ import { theme } from '../src/theme';
+ 
+ export default function MeusAnuncios() {
+-  const [ads,setAds]=useState([]); const [status,setStatus]=useState('loading');
+-  const load=async()=>{setStatus('loading');try{setAds(await getAds());setStatus('ready')}catch{setStatus('error')}}; useEffect(()=>{load()},[]);
+-  if(status==='loading')return <View style={styles.page}><Skeleton height={260}/></View>; if(status==='error')return <EstadoErro onRetry={load}/>;
+-  return <ScrollView contentContainerStyle={styles.page}><Head><title>Meus anúncios | ManaTrade</title></Head><Cabecalho title="Meus anúncios" back action={<BotaoPrimario label="Novo anúncio" onPress={()=>router.push('/anuncio/novo')} />} />{ads.length?ads.map((ad)=><ListaItem key={ad.id} title={ad.title} subtitle={`${ad.condition} · Quantidade ${ad.qty}`} meta={`${ad.status} · R$ ${ad.price}`} onPress={()=>router.push(`/anuncio/${ad.id}`)} />):<EstadoVazio titulo="Sem anúncios" acao="Criar anúncio" onPress={()=>router.push('/anuncio/novo')} />}</ScrollView>;
++  const [ads, setAds] = useState([]);
++  const [status, setStatus] = useState('loading');
++  const load = async () => {
++    setStatus('loading');
++    try {
++      setAds(await getAds());
++      setStatus('ready');
++    } catch {
++      setStatus('error');
++    }
++  };
++  useEffect(() => {
++    load();
++  }, []);
++  if (status === 'loading')
++    return (
++      <View style={styles.page}>
++        <Skeleton height={260} />
++      </View>
++    );
++  if (status === 'error') return <EstadoErro onRetry={load} />;
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>Meus anúncios | ManaTrade</title>
++      </Head>
++      <Cabecalho
++        title="Meus anúncios"
++        back
++        action={<BotaoPrimario label="Novo anúncio" onPress={() => router.push('/anuncio/novo')} />}
++      />
++      {ads.length ? (
++        ads.map((ad) => (
++          <ListaItem
++            key={ad.id}
++            title={ad.title}
++            subtitle={`${ad.condition} · Quantidade ${ad.qty}`}
++            meta={`${ad.status} · R$ ${ad.price}`}
++            onPress={() => router.push(`/anuncio/${ad.id}`)}
++          />
++        ))
++      ) : (
++        <EstadoVazio
++          titulo="Sem anúncios"
++          acao="Criar anúncio"
++          onPress={() => router.push('/anuncio/novo')}
++        />
++      )}
++    </ScrollView>
++  );
+ }
+-const styles=StyleSheet.create({page:{flexGrow:1,maxWidth:1320,width:'100%',alignSelf:'center',padding:theme.spacing.lg}});
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 1320,
++    width: '100%',
++    alignSelf: 'center',
++    padding: theme.spacing.lg,
++  },
++});
+diff --git a/app/notificacoes.js b/app/notificacoes.js
+index 7ccc0e1..cd4424c 100644
+--- a/app/notificacoes.js
++++ b/app/notificacoes.js
+@@ -1,2 +1,115 @@
+-import Head from 'expo-router/head';import { useEffect,useState } from 'react';import { Pressable,ScrollView,StyleSheet,Text,View } from 'react-native';import Cabecalho from '../src/components/Cabecalho';import EstadoErro from '../src/components/EstadoErro';import EstadoVazio from '../src/components/EstadoVazio';import Skeleton from '../src/components/Skeleton';import { getNotifications } from '../src/services/api';import { theme } from '../src/theme';
+-export default function Notificacoes(){const [items,setItems]=useState([]);const [status,setStatus]=useState('loading');const load=async()=>{setStatus('loading');try{setItems(await getNotifications());setStatus('ready')}catch{setStatus('error')}};useEffect(()=>{load()},[]);if(status==='loading')return <View style={styles.page}><Skeleton height={260}/></View>;if(status==='error')return <EstadoErro onRetry={load}/>;const types=[...new Set(items.map((item)=>item.type))];return <ScrollView contentContainerStyle={styles.page}><Head><title>Notificações | ManaTrade</title></Head><Cabecalho title="Notificações" back action={<Pressable style={styles.mark} onPress={()=>setItems((current)=>current.map((item)=>({...item,unread:false})))}><Text style={styles.markText}>Marcar todas como lidas</Text></Pressable>}/>{items.length?types.map((type)=><View key={type} style={styles.group}><Text style={styles.groupTitle}>{type}</Text>{items.filter((item)=>item.type===type).map((item)=><Pressable key={item.id} style={[styles.item,item.unread&&styles.unread]} onPress={()=>setItems((current)=>current.map((entry)=>entry.id===item.id?{...entry,unread:false}:entry))}><View style={styles.copy}><Text style={styles.title}>{item.title}</Text><Text style={styles.time}>{item.time}</Text></View>{item.unread&&<View style={styles.dot}/>}</Pressable>)}</View>):<EstadoVazio titulo="Sem notificações"/>}</ScrollView>}const styles=StyleSheet.create({page:{flexGrow:1,maxWidth:1320,width:'100%',alignSelf:'center',padding:theme.spacing.lg},mark:{minHeight:44,justifyContent:'center'},markText:{color:theme.colors.accent,fontWeight:theme.typography.weight.bold},group:{marginBottom:theme.spacing.lg},groupTitle:{color:theme.colors.textMuted,fontSize:theme.typography.small,fontWeight:theme.typography.weight.bold,marginBottom:theme.spacing.sm},item:{minHeight:68,flexDirection:'row',alignItems:'center',padding:theme.spacing.md,borderBottomWidth:1,borderBottomColor:theme.colors.border},unread:{backgroundColor:theme.colors.surface},copy:{flex:1},title:{color:theme.colors.text,fontWeight:theme.typography.weight.bold},time:{color:theme.colors.textMuted,marginTop:3},dot:{width:8,height:8,borderRadius:4,backgroundColor:theme.colors.accent}});
++import Head from 'expo-router/head';
++import { useEffect, useState } from 'react';
++import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
++import Cabecalho from '../src/components/Cabecalho';
++import EstadoErro from '../src/components/EstadoErro';
++import EstadoVazio from '../src/components/EstadoVazio';
++import Skeleton from '../src/components/Skeleton';
++import { getNotifications } from '../src/services/api';
++import { theme } from '../src/theme';
++export default function Notificacoes() {
++  const [items, setItems] = useState([]);
++  const [status, setStatus] = useState('loading');
++  const load = async () => {
++    setStatus('loading');
++    try {
++      setItems(await getNotifications());
++      setStatus('ready');
++    } catch {
++      setStatus('error');
++    }
++  };
++  useEffect(() => {
++    load();
++  }, []);
++  if (status === 'loading')
++    return (
++      <View style={styles.page}>
++        <Skeleton height={260} />
++      </View>
++    );
++  if (status === 'error') return <EstadoErro onRetry={load} />;
++  const types = [...new Set(items.map((item) => item.type))];
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>Notificações | ManaTrade</title>
++      </Head>
++      <Cabecalho
++        title="Notificações"
++        back
++        action={
++          <Pressable
++            style={styles.mark}
++            onPress={() =>
++              setItems((current) => current.map((item) => ({ ...item, unread: false })))
++            }
++          >
++            <Text style={styles.markText}>Marcar todas como lidas</Text>
++          </Pressable>
++        }
++      />
++      {items.length ? (
++        types.map((type) => (
++          <View key={type} style={styles.group}>
++            <Text style={styles.groupTitle}>{type}</Text>
++            {items
++              .filter((item) => item.type === type)
++              .map((item) => (
++                <Pressable
++                  key={item.id}
++                  style={[styles.item, item.unread && styles.unread]}
++                  onPress={() =>
++                    setItems((current) =>
++                      current.map((entry) =>
++                        entry.id === item.id ? { ...entry, unread: false } : entry,
++                      ),
++                    )
++                  }
++                >
++                  <View style={styles.copy}>
++                    <Text style={styles.title}>{item.title}</Text>
++                    <Text style={styles.time}>{item.time}</Text>
++                  </View>
++                  {item.unread && <View style={styles.dot} />}
++                </Pressable>
++              ))}
++          </View>
++        ))
++      ) : (
++        <EstadoVazio titulo="Sem notificações" />
++      )}
++    </ScrollView>
++  );
++}
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 1320,
++    width: '100%',
++    alignSelf: 'center',
++    padding: theme.spacing.lg,
++  },
++  mark: { minHeight: 44, justifyContent: 'center' },
++  markText: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold },
++  group: { marginBottom: theme.spacing.lg },
++  groupTitle: {
++    color: theme.colors.textMuted,
++    fontSize: theme.typography.small,
++    fontWeight: theme.typography.weight.bold,
++    marginBottom: theme.spacing.sm,
++  },
++  item: {
++    minHeight: 68,
++    flexDirection: 'row',
++    alignItems: 'center',
++    padding: theme.spacing.md,
++    borderBottomWidth: 1,
++    borderBottomColor: theme.colors.border,
++  },
++  unread: { backgroundColor: theme.colors.surface },
++  copy: { flex: 1 },
++  title: { color: theme.colors.text, fontWeight: theme.typography.weight.bold },
++  time: { color: theme.colors.textMuted, marginTop: 3 },
++  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.colors.accent },
++});
+diff --git a/app/propostas.js b/app/propostas.js
+index 87d5be2..40b9a42 100644
+--- a/app/propostas.js
++++ b/app/propostas.js
+@@ -1,2 +1,93 @@
+-import Head from 'expo-router/head';import { useEffect,useState } from 'react';import { ScrollView,StyleSheet,Text,View } from 'react-native';import Cabecalho from '../src/components/Cabecalho';import BotaoPrimario from '../src/components/BotaoPrimario';import BotaoSecundario from '../src/components/BotaoSecundario';import ModalConfirmacao from '../src/components/ModalConfirmacao';import EstadoErro from '../src/components/EstadoErro';import EstadoVazio from '../src/components/EstadoVazio';import Skeleton from '../src/components/Skeleton';import ListaItem from '../src/components/ListaItem';import { getProposals } from '../src/services/api';import { theme } from '../src/theme';
+-export default function Propostas(){const [items,setItems]=useState([]);const [status,setStatus]=useState('loading');const [confirm,setConfirm]=useState(null);const load=async()=>{setStatus('loading');try{setItems(await getProposals());setStatus('ready')}catch{setStatus('error')}};useEffect(()=>{load()},[]);if(status==='loading')return <View style={styles.page}><Skeleton height={260}/></View>;if(status==='error')return <EstadoErro onRetry={load}/>;return <ScrollView contentContainerStyle={styles.page}><Head><title>Propostas | ManaTrade</title></Head><Cabecalho title="Propostas" back />{items.length?items.map((item)=><View key={item.id} style={styles.item}><ListaItem title={item.card} subtitle={`${item.direction==='recebida'?'Recebida de':'Enviada para'} ${item.from}`} meta={`R$ ${item.offer}`} />{item.direction==='recebida'&&<View style={styles.actions}><BotaoPrimario label="Aceitar"/><BotaoSecundario label="Contraproposta"/><BotaoSecundario label="Recusar" danger onPress={()=>setConfirm(item)} /></View>}</View>):<EstadoVazio titulo="Sem propostas"/>}<ModalConfirmacao visible={!!confirm} title="Recusar proposta?" message={`A proposta de R$ ${confirm?.offer || 0} será recusada.`} confirmLabel="Recusar" onConfirm={()=>setConfirm(null)} onCancel={()=>setConfirm(null)} /></ScrollView>}const styles=StyleSheet.create({page:{flexGrow:1,maxWidth:1320,width:'100%',alignSelf:'center',padding:theme.spacing.lg},item:{marginBottom:theme.spacing.lg,borderBottomWidth:1,borderBottomColor:theme.colors.border},actions:{flexDirection:'row',flexWrap:'wrap',gap:theme.spacing.sm,paddingBottom:theme.spacing.md}});
++import Head from 'expo-router/head';
++import { useEffect, useState } from 'react';
++import { ScrollView, StyleSheet, Text, View } from 'react-native';
++import Cabecalho from '../src/components/Cabecalho';
++import BotaoPrimario from '../src/components/BotaoPrimario';
++import BotaoSecundario from '../src/components/BotaoSecundario';
++import ModalConfirmacao from '../src/components/ModalConfirmacao';
++import EstadoErro from '../src/components/EstadoErro';
++import EstadoVazio from '../src/components/EstadoVazio';
++import Skeleton from '../src/components/Skeleton';
++import ListaItem from '../src/components/ListaItem';
++import { getProposals } from '../src/services/api';
++import { theme } from '../src/theme';
++export default function Propostas() {
++  const [items, setItems] = useState([]);
++  const [status, setStatus] = useState('loading');
++  const [confirm, setConfirm] = useState(null);
++  const load = async () => {
++    setStatus('loading');
++    try {
++      setItems(await getProposals());
++      setStatus('ready');
++    } catch {
++      setStatus('error');
++    }
++  };
++  useEffect(() => {
++    load();
++  }, []);
++  if (status === 'loading')
++    return (
++      <View style={styles.page}>
++        <Skeleton height={260} />
++      </View>
++    );
++  if (status === 'error') return <EstadoErro onRetry={load} />;
++  return (
++    <ScrollView contentContainerStyle={styles.page}>
++      <Head>
++        <title>Propostas | ManaTrade</title>
++      </Head>
++      <Cabecalho title="Propostas" back />
++      {items.length ? (
++        items.map((item) => (
++          <View key={item.id} style={styles.item}>
++            <ListaItem
++              title={item.card}
++              subtitle={`${item.direction === 'recebida' ? 'Recebida de' : 'Enviada para'} ${item.from}`}
++              meta={`R$ ${item.offer}`}
++            />
++            {item.direction === 'recebida' && (
++              <View style={styles.actions}>
++                <BotaoPrimario label="Aceitar" />
++                <BotaoSecundario label="Contraproposta" />
++                <BotaoSecundario label="Recusar" danger onPress={() => setConfirm(item)} />
++              </View>
++            )}
++          </View>
++        ))
++      ) : (
++        <EstadoVazio titulo="Sem propostas" />
++      )}
++      <ModalConfirmacao
++        visible={!!confirm}
++        title="Recusar proposta?"
++        message={`A proposta de R$ ${confirm?.offer || 0} será recusada.`}
++        confirmLabel="Recusar"
++        onConfirm={() => setConfirm(null)}
++        onCancel={() => setConfirm(null)}
++      />
++    </ScrollView>
++  );
++}
++const styles = StyleSheet.create({
++  page: {
++    flexGrow: 1,
++    maxWidth: 1320,
++    width: '100%',
++    alignSelf: 'center',
++    padding: theme.spacing.lg,
++  },
++  item: {
++    marginBottom: theme.spacing.lg,
++    borderBottomWidth: 1,
++    borderBottomColor: theme.colors.border,
++  },
++  actions: {
++    flexDirection: 'row',
++    flexWrap: 'wrap',
++    gap: theme.spacing.sm,
++    paddingBottom: theme.spacing.md,
++  },
++});
+diff --git a/src/components/BotaoPrimario.js b/src/components/BotaoPrimario.js
+index e05d562..202a121 100644
+--- a/src/components/BotaoPrimario.js
++++ b/src/components/BotaoPrimario.js
+@@ -2,6 +2,34 @@ import { Pressable, StyleSheet, Text } from 'react-native';
+ import { theme } from '../theme';
+ 
+ export default function BotaoPrimario({ label, onPress, disabled, style }) {
+-  return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ hovered, pressed }) => [styles.button, disabled && styles.disabled, hovered && styles.hover, pressed && styles.pressed, style]}><Text style={styles.text}>{label}</Text></Pressable>;
++  return (
++    <Pressable
++      accessibilityRole="button"
++      disabled={disabled}
++      onPress={onPress}
++      style={({ hovered, pressed }) => [
++        styles.button,
++        disabled && styles.disabled,
++        hovered && styles.hover,
++        pressed && styles.pressed,
++        style,
++      ]}
++    >
++      <Text style={styles.text}>{label}</Text>
++    </Pressable>
++  );
+ }
+-const styles = StyleSheet.create({ button: { minHeight: 48, borderRadius: theme.radius.sm, alignItems: 'center', justifyContent: 'center', paddingHorizontal: theme.spacing.lg, backgroundColor: theme.colors.greenStart }, disabled: { opacity: 0.45 }, hover: { backgroundColor: theme.colors.greenEnd }, pressed: { transform: [{ scale: 0.98 }] }, text: { color: '#09110f', fontWeight: theme.typography.weight.bold } });
++const styles = StyleSheet.create({
++  button: {
++    minHeight: 48,
++    borderRadius: theme.radius.sm,
++    alignItems: 'center',
++    justifyContent: 'center',
++    paddingHorizontal: theme.spacing.lg,
++    backgroundColor: theme.colors.greenStart,
++  },
++  disabled: { opacity: 0.45 },
++  hover: { backgroundColor: theme.colors.greenEnd },
++  pressed: { transform: [{ scale: 0.98 }] },
++  text: { color: '#09110f', fontWeight: theme.typography.weight.bold },
++});
+diff --git a/src/components/BotaoSecundario.js b/src/components/BotaoSecundario.js
+index 90d2b74..2a98da2 100644
+--- a/src/components/BotaoSecundario.js
++++ b/src/components/BotaoSecundario.js
+@@ -2,6 +2,36 @@ import { Pressable, StyleSheet, Text } from 'react-native';
+ import { theme } from '../theme';
+ 
+ export default function BotaoSecundario({ label, onPress, danger, style }) {
+-  return <Pressable accessibilityRole="button" onPress={onPress} style={({ hovered, pressed }) => [styles.button, danger && styles.danger, hovered && styles.hover, pressed && styles.pressed, style]}><Text style={[styles.text, danger && styles.dangerText]}>{label}</Text></Pressable>;
++  return (
++    <Pressable
++      accessibilityRole="button"
++      onPress={onPress}
++      style={({ hovered, pressed }) => [
++        styles.button,
++        danger && styles.danger,
++        hovered && styles.hover,
++        pressed && styles.pressed,
++        style,
++      ]}
++    >
++      <Text style={[styles.text, danger && styles.dangerText]}>{label}</Text>
++    </Pressable>
++  );
+ }
+-const styles = StyleSheet.create({ button: { minHeight: 48, borderRadius: theme.radius.sm, alignItems: 'center', justifyContent: 'center', paddingHorizontal: theme.spacing.lg, borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.surface }, danger: { borderColor: theme.colors.danger }, hover: { borderColor: theme.colors.accent }, pressed: { opacity: 0.8 }, text: { color: theme.colors.text, fontWeight: theme.typography.weight.bold }, dangerText: { color: theme.colors.danger } });
++const styles = StyleSheet.create({
++  button: {
++    minHeight: 48,
++    borderRadius: theme.radius.sm,
++    alignItems: 'center',
++    justifyContent: 'center',
++    paddingHorizontal: theme.spacing.lg,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    backgroundColor: theme.colors.surface,
++  },
++  danger: { borderColor: theme.colors.danger },
++  hover: { borderColor: theme.colors.accent },
++  pressed: { opacity: 0.8 },
++  text: { color: theme.colors.text, fontWeight: theme.typography.weight.bold },
++  dangerText: { color: theme.colors.danger },
++});
+diff --git a/src/components/Cabecalho.js b/src/components/Cabecalho.js
+index c02b13c..fc842d6 100644
+--- a/src/components/Cabecalho.js
++++ b/src/components/Cabecalho.js
+@@ -24,4 +24,27 @@ export default function Cabecalho({ title, subtitle, back = false, action }) {
+     </View>
+   );
+ }
+-const styles = StyleSheet.create({ header: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, marginBottom: theme.spacing.lg }, copy: { flex: 1 }, back: { width: 44, height: 44, borderRadius: theme.radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.surface }, title: { color: theme.colors.text, fontSize: theme.typography.title, fontWeight: theme.typography.weight.bold }, subtitle: { color: theme.colors.textMuted, marginTop: 2 } });
++const styles = StyleSheet.create({
++  header: {
++    minHeight: 64,
++    flexDirection: 'row',
++    alignItems: 'center',
++    gap: theme.spacing.md,
++    marginBottom: theme.spacing.lg,
++  },
++  copy: { flex: 1 },
++  back: {
++    width: 44,
++    height: 44,
++    borderRadius: theme.radius.sm,
++    alignItems: 'center',
++    justifyContent: 'center',
++    backgroundColor: theme.colors.surface,
++  },
++  title: {
++    color: theme.colors.text,
++    fontSize: theme.typography.title,
++    fontWeight: theme.typography.weight.bold,
++  },
++  subtitle: { color: theme.colors.textMuted, marginTop: 2 },
++});
+diff --git a/src/components/CardCapa.js b/src/components/CardCapa.js
+index 77d1488..52eb3e9 100644
+--- a/src/components/CardCapa.js
++++ b/src/components/CardCapa.js
+@@ -3,11 +3,26 @@ import { theme } from '../theme';
+ 
+ export default function CardCapa({ item, onPress, compact = false }) {
+   return (
+-    <Pressable accessibilityRole="button" onPress={onPress} style={({ hovered, pressed }) => [styles.card, compact && styles.compact, hovered && styles.hover, pressed && styles.pressed]}>
++    <Pressable
++      accessibilityRole="button"
++      onPress={onPress}
++      style={({ hovered, pressed }) => [
++        styles.card,
++        compact && styles.compact,
++        hovered && styles.hover,
++        pressed && styles.pressed,
++      ]}
++    >
+       <Image source={{ uri: item.image }} style={[styles.image, compact && styles.imageCompact]} />
+       <View style={styles.body}>
+-        <Text numberOfLines={1} style={styles.name}>{item.name || item.title}</Text>
+-        {!!item.edition && <Text numberOfLines={1} style={styles.meta}>{item.edition}</Text>}
++        <Text numberOfLines={1} style={styles.name}>
++          {item.name || item.title}
++        </Text>
++        {!!item.edition && (
++          <Text numberOfLines={1} style={styles.meta}>
++            {item.edition}
++          </Text>
++        )}
+         <Text style={styles.price}>R$ {Number(item.price).toFixed(2)}</Text>
+       </View>
+     </Pressable>
+@@ -15,6 +30,30 @@ export default function CardCapa({ item, onPress, compact = false }) {
+ }
+ 
+ const styles = StyleSheet.create({
+-  card: { width: 170, minHeight: 286, borderRadius: theme.radius.md, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border, overflow: 'hidden' }, compact: { width: 138, minHeight: 235 }, hover: { borderColor: theme.colors.accent, transform: [{ translateY: -2 }] }, pressed: { opacity: 0.85 },
+-  image: { width: '100%', height: 190 }, imageCompact: { height: 150 }, body: { flex: 1, padding: theme.spacing.md, gap: theme.spacing.xs }, name: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, meta: { color: theme.colors.textMuted, fontSize: theme.typography.small }, price: { marginTop: 'auto', color: theme.colors.accent, fontWeight: theme.typography.weight.bold },
++  card: {
++    width: 170,
++    minHeight: 286,
++    borderRadius: theme.radius.md,
++    backgroundColor: theme.colors.surface,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    overflow: 'hidden',
++  },
++  compact: { width: 138, minHeight: 235 },
++  hover: { borderColor: theme.colors.accent, transform: [{ translateY: -2 }] },
++  pressed: { opacity: 0.85 },
++  image: { width: '100%', height: 190 },
++  imageCompact: { height: 150 },
++  body: { flex: 1, padding: theme.spacing.md, gap: theme.spacing.xs },
++  name: {
++    color: theme.colors.text,
++    fontSize: theme.typography.h3,
++    fontWeight: theme.typography.weight.bold,
++  },
++  meta: { color: theme.colors.textMuted, fontSize: theme.typography.small },
++  price: {
++    marginTop: 'auto',
++    color: theme.colors.accent,
++    fontWeight: theme.typography.weight.bold,
++  },
+ });
+diff --git a/src/components/ChipFiltro.js b/src/components/ChipFiltro.js
+index ad4ea15..9b5244d 100644
+--- a/src/components/ChipFiltro.js
++++ b/src/components/ChipFiltro.js
+@@ -2,6 +2,33 @@ import { Pressable, StyleSheet, Text } from 'react-native';
+ import { theme } from '../theme';
+ 
+ export default function ChipFiltro({ label, active, onPress }) {
+-  return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed, hovered }) => [styles.chip, active && styles.active, (hovered || pressed) && styles.hover]}><Text style={[styles.text, active && styles.activeText]}>{label}</Text></Pressable>;
++  return (
++    <Pressable
++      accessibilityRole="button"
++      onPress={onPress}
++      style={({ pressed, hovered }) => [
++        styles.chip,
++        active && styles.active,
++        (hovered || pressed) && styles.hover,
++      ]}
++    >
++      <Text style={[styles.text, active && styles.activeText]}>{label}</Text>
++    </Pressable>
++  );
+ }
+-const styles = StyleSheet.create({ chip: { minHeight: 44, paddingHorizontal: theme.spacing.lg, alignItems: 'center', justifyContent: 'center', borderRadius: theme.radius.pill, borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.surface }, active: { backgroundColor: theme.colors.accent, borderColor: theme.colors.accent }, hover: { transform: [{ scale: 1.02 }] }, text: { color: theme.colors.text, fontWeight: theme.typography.weight.medium }, activeText: { color: theme.colors.background } });
++const styles = StyleSheet.create({
++  chip: {
++    minHeight: 44,
++    paddingHorizontal: theme.spacing.lg,
++    alignItems: 'center',
++    justifyContent: 'center',
++    borderRadius: theme.radius.pill,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    backgroundColor: theme.colors.surface,
++  },
++  active: { backgroundColor: theme.colors.accent, borderColor: theme.colors.accent },
++  hover: { transform: [{ scale: 1.02 }] },
++  text: { color: theme.colors.text, fontWeight: theme.typography.weight.medium },
++  activeText: { color: theme.colors.background },
++});
+diff --git a/src/components/Estados.js b/src/components/Estados.js
+index 519e79d..d91afe9 100644
+--- a/src/components/Estados.js
++++ b/src/components/Estados.js
+@@ -1,7 +1,62 @@
+ import { Pressable, StyleSheet, Text, View } from 'react-native';
+ import { theme } from '../theme';
+ 
+-export function EstadoVazio({ titulo = 'Nada por aqui', texto, acao, onPress }) { return <View style={styles.wrap}><Text style={styles.icon}>◇</Text><Text style={styles.title}>{titulo}</Text>{!!texto && <Text style={styles.text}>{texto}</Text>} {!!acao && <Pressable style={styles.action} onPress={onPress}><Text style={styles.actionText}>{acao}</Text></Pressable>}</View>; }
+-export function EstadoErro({ texto = 'Não foi possível carregar.', onRetry }) { return <View style={styles.wrap}><Text style={styles.icon}>!</Text><Text style={styles.title}>Algo deu errado</Text><Text style={styles.text}>{texto}</Text><Pressable style={styles.action} onPress={onRetry}><Text style={styles.actionText}>Tentar de novo</Text></Pressable></View>; }
+-export function Skeleton({ width = '100%', height = 120 }) { return <View style={[styles.skeleton, { width, height }]} />; }
+-const styles = StyleSheet.create({ wrap: { minHeight: 220, alignItems: 'center', justifyContent: 'center', padding: theme.spacing.xxl }, icon: { color: theme.colors.accent, fontSize: 38, marginBottom: theme.spacing.sm }, title: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, text: { color: theme.colors.textMuted, textAlign: 'center', marginTop: theme.spacing.sm, maxWidth: 340 }, action: { minHeight: 44, marginTop: theme.spacing.lg, paddingHorizontal: theme.spacing.lg, justifyContent: 'center', borderRadius: theme.radius.sm, backgroundColor: theme.colors.accent }, actionText: { color: theme.colors.background, fontWeight: theme.typography.weight.bold }, skeleton: { borderRadius: theme.radius.md, backgroundColor: theme.colors.surface, opacity: 0.7 } });
++export function EstadoVazio({ titulo = 'Nada por aqui', texto, acao, onPress }) {
++  return (
++    <View style={styles.wrap}>
++      <Text style={styles.icon}>◇</Text>
++      <Text style={styles.title}>{titulo}</Text>
++      {!!texto && <Text style={styles.text}>{texto}</Text>}{' '}
++      {!!acao && (
++        <Pressable style={styles.action} onPress={onPress}>
++          <Text style={styles.actionText}>{acao}</Text>
++        </Pressable>
++      )}
++    </View>
++  );
++}
++export function EstadoErro({ texto = 'Não foi possível carregar.', onRetry }) {
++  return (
++    <View style={styles.wrap}>
++      <Text style={styles.icon}>!</Text>
++      <Text style={styles.title}>Algo deu errado</Text>
++      <Text style={styles.text}>{texto}</Text>
++      <Pressable style={styles.action} onPress={onRetry}>
++        <Text style={styles.actionText}>Tentar de novo</Text>
++      </Pressable>
++    </View>
++  );
++}
++export function Skeleton({ width = '100%', height = 120 }) {
++  return <View style={[styles.skeleton, { width, height }]} />;
++}
++const styles = StyleSheet.create({
++  wrap: {
++    minHeight: 220,
++    alignItems: 'center',
++    justifyContent: 'center',
++    padding: theme.spacing.xxl,
++  },
++  icon: { color: theme.colors.accent, fontSize: 38, marginBottom: theme.spacing.sm },
++  title: {
++    color: theme.colors.text,
++    fontSize: theme.typography.h3,
++    fontWeight: theme.typography.weight.bold,
++  },
++  text: {
++    color: theme.colors.textMuted,
++    textAlign: 'center',
++    marginTop: theme.spacing.sm,
++    maxWidth: 340,
++  },
++  action: {
++    minHeight: 44,
++    marginTop: theme.spacing.lg,
++    paddingHorizontal: theme.spacing.lg,
++    justifyContent: 'center',
++    borderRadius: theme.radius.sm,
++    backgroundColor: theme.colors.accent,
++  },
++  actionText: { color: theme.colors.background, fontWeight: theme.typography.weight.bold },
++  skeleton: { borderRadius: theme.radius.md, backgroundColor: theme.colors.surface, opacity: 0.7 },
++});
+diff --git a/src/components/ListaItem.js b/src/components/ListaItem.js
+index d010d13..d7e878d 100644
+--- a/src/components/ListaItem.js
++++ b/src/components/ListaItem.js
+@@ -1,5 +1,41 @@
+ import { Pressable, StyleSheet, Text, View } from 'react-native';
+ import { theme } from '../theme';
+ 
+-export default function ListaItem({ title, subtitle, meta, onPress, leading }) { return <Pressable accessibilityRole="button" onPress={onPress} style={({ hovered, pressed }) => [styles.row, hovered && styles.hover, pressed && styles.pressed]}>{leading && <View style={styles.leading}>{leading}</View>}<View style={styles.copy}><Text style={styles.title}>{title}</Text>{!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}</View>{!!meta && <Text style={styles.meta}>{meta}</Text>}</Pressable>; }
+-const styles = StyleSheet.create({ row: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, borderBottomWidth: 1, borderBottomColor: theme.colors.border, paddingVertical: theme.spacing.md }, hover: { backgroundColor: theme.colors.surface }, pressed: { opacity: 0.8 }, leading: { width: 44, alignItems: 'center' }, copy: { flex: 1 }, title: { color: theme.colors.text, fontWeight: theme.typography.weight.bold }, subtitle: { color: theme.colors.textMuted, marginTop: 3 }, meta: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold } });
++export default function ListaItem({ title, subtitle, meta, onPress, leading }) {
++  return (
++    <Pressable
++      accessibilityRole="button"
++      onPress={onPress}
++      style={({ hovered, pressed }) => [
++        styles.row,
++        hovered && styles.hover,
++        pressed && styles.pressed,
++      ]}
++    >
++      {leading && <View style={styles.leading}>{leading}</View>}
++      <View style={styles.copy}>
++        <Text style={styles.title}>{title}</Text>
++        {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
++      </View>
++      {!!meta && <Text style={styles.meta}>{meta}</Text>}
++    </Pressable>
++  );
++}
++const styles = StyleSheet.create({
++  row: {
++    minHeight: 72,
++    flexDirection: 'row',
++    alignItems: 'center',
++    gap: theme.spacing.md,
++    borderBottomWidth: 1,
++    borderBottomColor: theme.colors.border,
++    paddingVertical: theme.spacing.md,
++  },
++  hover: { backgroundColor: theme.colors.surface },
++  pressed: { opacity: 0.8 },
++  leading: { width: 44, alignItems: 'center' },
++  copy: { flex: 1 },
++  title: { color: theme.colors.text, fontWeight: theme.typography.weight.bold },
++  subtitle: { color: theme.colors.textMuted, marginTop: 3 },
++  meta: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold },
++});
+diff --git a/src/components/Mapa.js b/src/components/Mapa.js
+index ff1c708..70874f8 100644
+--- a/src/components/Mapa.js
++++ b/src/components/Mapa.js
+@@ -2,6 +2,23 @@ import { View, Text, StyleSheet } from 'react-native';
+ import { theme } from '../theme';
+ 
+ export default function Mapa({ stores = [] }) {
+-  return <View style={styles.map}><Text style={styles.icon}>MAPA</Text><Text style={styles.text}>{stores.length} lojas próximas</Text></View>;
++  return (
++    <View style={styles.map}>
++      <Text style={styles.icon}>MAPA</Text>
++      <Text style={styles.text}>{stores.length} lojas próximas</Text>
++    </View>
++  );
+ }
+-const styles = StyleSheet.create({ map: { height: 260, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border, alignItems: 'center', justifyContent: 'center' }, icon: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold }, text: { color: theme.colors.textMuted, marginTop: theme.spacing.sm } });
++const styles = StyleSheet.create({
++  map: {
++    height: 260,
++    borderRadius: theme.radius.lg,
++    backgroundColor: theme.colors.surface,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    alignItems: 'center',
++    justifyContent: 'center',
++  },
++  icon: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold },
++  text: { color: theme.colors.textMuted, marginTop: theme.spacing.sm },
++});
+diff --git a/src/components/Mapa.web.js b/src/components/Mapa.web.js
+index 2c55de6..3d88a84 100644
+--- a/src/components/Mapa.web.js
++++ b/src/components/Mapa.web.js
+@@ -2,6 +2,46 @@ import { View, Text, StyleSheet } from 'react-native';
+ import { theme } from '../theme';
+ 
+ export default function Mapa({ stores = [] }) {
+-  return <View style={styles.map}><View style={styles.grid}><Text style={styles.marker}>●</Text></View><Text style={styles.text}>{stores.length} lojas nesta região</Text></View>;
++  return (
++    <View style={styles.map}>
++      <View style={styles.grid}>
++        <Text style={styles.marker}>●</Text>
++      </View>
++      <Text style={styles.text}>{stores.length} lojas nesta região</Text>
++    </View>
++  );
+ }
+-const styles = StyleSheet.create({ map: { height: 260, borderRadius: theme.radius.lg, backgroundColor: '#152638', borderWidth: 1, borderColor: theme.colors.border, overflow: 'hidden', alignItems: 'center', justifyContent: 'flex-end', padding: theme.spacing.lg }, grid: { position: 'absolute', width: '140%', height: '140%', transform: [{ rotate: '-12deg' }], borderWidth: 1, borderColor: '#294259' }, marker: { position: 'absolute', left: '52%', top: '48%', color: theme.colors.accent, fontSize: 28 }, text: { color: theme.colors.text, backgroundColor: theme.colors.surface, padding: theme.spacing.md, borderRadius: theme.radius.sm } });
++const styles = StyleSheet.create({
++  map: {
++    height: 260,
++    borderRadius: theme.radius.lg,
++    backgroundColor: '#152638',
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    overflow: 'hidden',
++    alignItems: 'center',
++    justifyContent: 'flex-end',
++    padding: theme.spacing.lg,
++  },
++  grid: {
++    position: 'absolute',
++    width: '140%',
++    height: '140%',
++    transform: [{ rotate: '-12deg' }],
++    borderWidth: 1,
++    borderColor: '#294259',
++  },
++  marker: {
++    position: 'absolute',
++    left: '52%',
++    top: '48%',
++    color: theme.colors.accent,
++    fontSize: 28,
++  },
++  text: {
++    color: theme.colors.text,
++    backgroundColor: theme.colors.surface,
++    padding: theme.spacing.md,
++    borderRadius: theme.radius.sm,
++  },
++});
+diff --git a/src/components/ModalConfirmacao.js b/src/components/ModalConfirmacao.js
+index abe7794..a657262 100644
+--- a/src/components/ModalConfirmacao.js
++++ b/src/components/ModalConfirmacao.js
+@@ -1,7 +1,65 @@
+ import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+ import { theme } from '../theme';
+ 
+-export default function ModalConfirmacao({ visible, title, message, confirmLabel = 'Confirmar', onConfirm, onCancel }) {
+-  return <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}><Pressable style={styles.backdrop} onPress={onCancel}><Pressable style={styles.dialog} onPress={(event) => event.stopPropagation?.()}><Text style={styles.title}>{title}</Text><Text style={styles.message}>{message}</Text><View style={styles.actions}><Pressable accessibilityRole="button" style={styles.cancel} onPress={onCancel}><Text style={styles.cancelText}>Cancelar</Text></Pressable><Pressable accessibilityRole="button" style={styles.confirm} onPress={onConfirm}><Text style={styles.confirmText}>{confirmLabel}</Text></Pressable></View></Pressable></Pressable></Modal>;
++export default function ModalConfirmacao({
++  visible,
++  title,
++  message,
++  confirmLabel = 'Confirmar',
++  onConfirm,
++  onCancel,
++}) {
++  return (
++    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
++      <Pressable style={styles.backdrop} onPress={onCancel}>
++        <Pressable style={styles.dialog} onPress={(event) => event.stopPropagation?.()}>
++          <Text style={styles.title}>{title}</Text>
++          <Text style={styles.message}>{message}</Text>
++          <View style={styles.actions}>
++            <Pressable accessibilityRole="button" style={styles.cancel} onPress={onCancel}>
++              <Text style={styles.cancelText}>Cancelar</Text>
++            </Pressable>
++            <Pressable accessibilityRole="button" style={styles.confirm} onPress={onConfirm}>
++              <Text style={styles.confirmText}>{confirmLabel}</Text>
++            </Pressable>
++          </View>
++        </Pressable>
++      </Pressable>
++    </Modal>
++  );
+ }
+-const styles = StyleSheet.create({ backdrop: { flex: 1, backgroundColor: '#000b', alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg }, dialog: { width: '100%', maxWidth: 440, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border, padding: theme.spacing.xl }, title: { color: theme.colors.text, fontSize: theme.typography.h2, fontWeight: theme.typography.weight.bold }, message: { color: theme.colors.textMuted, lineHeight: 22, marginVertical: theme.spacing.lg }, actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: theme.spacing.sm }, cancel: { minHeight: 44, justifyContent: 'center', paddingHorizontal: theme.spacing.lg }, confirm: { minHeight: 44, justifyContent: 'center', borderRadius: theme.radius.sm, backgroundColor: theme.colors.danger, paddingHorizontal: theme.spacing.lg }, cancelText: { color: theme.colors.text, fontWeight: theme.typography.weight.bold }, confirmText: { color: '#fff', fontWeight: theme.typography.weight.bold } });
++const styles = StyleSheet.create({
++  backdrop: {
++    flex: 1,
++    backgroundColor: '#000b',
++    alignItems: 'center',
++    justifyContent: 'center',
++    padding: theme.spacing.lg,
++  },
++  dialog: {
++    width: '100%',
++    maxWidth: 440,
++    borderRadius: theme.radius.lg,
++    backgroundColor: theme.colors.surface,
++    borderWidth: 1,
++    borderColor: theme.colors.border,
++    padding: theme.spacing.xl,
++  },
++  title: {
++    color: theme.colors.text,
++    fontSize: theme.typography.h2,
++    fontWeight: theme.typography.weight.bold,
++  },
++  message: { color: theme.colors.textMuted, lineHeight: 22, marginVertical: theme.spacing.lg },
++  actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: theme.spacing.sm },
++  cancel: { minHeight: 44, justifyContent: 'center', paddingHorizontal: theme.spacing.lg },
++  confirm: {
++    minHeight: 44,
++    justifyContent: 'center',
++    borderRadius: theme.radius.sm,
++    backgroundColor: theme.colors.danger,
++    paddingHorizontal: theme.spacing.lg,
++  },
++  cancelText: { color: theme.colors.text, fontWeight: theme.typography.weight.bold },
++  confirmText: { color: '#fff', fontWeight: theme.typography.weight.bold },
++});
+diff --git a/src/components/PrecoTag.js b/src/components/PrecoTag.js
+index b82074c..71f6fa1 100644
+--- a/src/components/PrecoTag.js
++++ b/src/components/PrecoTag.js
+@@ -2,6 +2,17 @@ import { StyleSheet, Text } from 'react-native';
+ import { theme } from '../theme';
+ 
+ export default function PrecoTag({ value, tone = 'accent' }) {
+-  return <Text style={[styles.tag, tone === 'muted' && styles.muted]}>R$ {Number(value || 0).toFixed(2)}</Text>;
++  return (
++    <Text style={[styles.tag, tone === 'muted' && styles.muted]}>
++      R$ {Number(value || 0).toFixed(2)}
++    </Text>
++  );
+ }
+-const styles = StyleSheet.create({ tag: { color: theme.colors.accent, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, muted: { color: theme.colors.textMuted } });
++const styles = StyleSheet.create({
++  tag: {
++    color: theme.colors.accent,
++    fontSize: theme.typography.h3,
++    fontWeight: theme.typography.weight.bold,
++  },
++  muted: { color: theme.colors.textMuted },
++});
+diff --git a/src/components/SeloCondicao.js b/src/components/SeloCondicao.js
+index c3bc445..501c8b5 100644
+--- a/src/components/SeloCondicao.js
++++ b/src/components/SeloCondicao.js
+@@ -2,7 +2,27 @@ import { StyleSheet, Text, View } from 'react-native';
+ import { theme } from '../theme';
+ 
+ export default function SeloCondicao({ value = 'NM' }) {
+-  return <View style={[styles.badge, value === 'NM' && styles.good, value === 'HP' && styles.poor]}><Text style={styles.text}>{value}</Text></View>;
++  return (
++    <View style={[styles.badge, value === 'NM' && styles.good, value === 'HP' && styles.poor]}>
++      <Text style={styles.text}>{value}</Text>
++    </View>
++  );
+ }
+ 
+-const styles = StyleSheet.create({ badge: { minWidth: 38, paddingHorizontal: 8, paddingVertical: 5, borderRadius: theme.radius.pill, alignItems: 'center', backgroundColor: theme.colors.warning }, good: { backgroundColor: '#3d8e63' }, poor: { backgroundColor: theme.colors.danger }, text: { color: theme.colors.text, fontSize: theme.typography.small, fontWeight: theme.typography.weight.bold } });
++const styles = StyleSheet.create({
++  badge: {
++    minWidth: 38,
++    paddingHorizontal: 8,
++    paddingVertical: 5,
++    borderRadius: theme.radius.pill,
++    alignItems: 'center',
++    backgroundColor: theme.colors.warning,
++  },
++  good: { backgroundColor: '#3d8e63' },
++  poor: { backgroundColor: theme.colors.danger },
++  text: {
++    color: theme.colors.text,
++    fontSize: theme.typography.small,
++    fontWeight: theme.typography.weight.bold,
++  },
++});
+diff --git a/src/contexts/AuthContext.js b/src/contexts/AuthContext.js
+index 933733c..e2e1fd1 100644
+--- a/src/contexts/AuthContext.js
++++ b/src/contexts/AuthContext.js
+@@ -24,11 +24,16 @@ export function AuthProvider({ children }) {
+       }
+       setLoading(false);
+     });
+-    return () => { active = false; };
++    return () => {
++      active = false;
++    };
+   }, []);
+ 
+   const signIn = async (profile = {}) => {
+-    const nextUser = { name: profile.name || 'Jonathan Silva', email: profile.email || 'j@manatrade.com' };
++    const nextUser = {
++      name: profile.name || 'Jonathan Silva',
++      email: profile.email || 'j@manatrade.com',
++    };
+     await storage.setItem(SESSION_KEY, JSON.stringify(nextUser));
+     setUser(nextUser);
+     setAuthenticated(true);
+@@ -47,4 +52,6 @@ export function AuthProvider({ children }) {
+   );
+ }
+ 
+-export function useAuth() { return useContext(AuthContext); }
++export function useAuth() {
++  return useContext(AuthContext);
++}
+diff --git a/src/hooks/useBreakpoint.js b/src/hooks/useBreakpoint.js
+index 05e0a9e..d993d9f 100644
+--- a/src/hooks/useBreakpoint.js
++++ b/src/hooks/useBreakpoint.js
+@@ -3,5 +3,11 @@ import { useWindowDimensions } from 'react-native';
+ export function useBreakpoint() {
+   const { width } = useWindowDimensions();
+   const breakpoint = width < 768 ? 'mobile' : width < 1200 ? 'tablet' : 'desktop';
+-  return { width, breakpoint, isMobile: breakpoint === 'mobile', isWide: breakpoint !== 'mobile', columns: width < 768 ? 2 : width < 1200 ? 4 : 6 };
++  return {
++    width,
++    breakpoint,
++    isMobile: breakpoint === 'mobile',
++    isWide: breakpoint !== 'mobile',
++    columns: width < 768 ? 2 : width < 1200 ? 4 : 6,
++  };
+ }
+diff --git a/src/mocks/dados.js b/src/mocks/dados.js
+index fc1b530..df2cdda 100644
+--- a/src/mocks/dados.js
++++ b/src/mocks/dados.js
+@@ -1,38 +1,188 @@
+ const cover = (id) => `https://placehold.co/500x700/223447/f4f7fb/png?text=Carta+${id}`;
+ export const cards = Array.from({ length: 24 }, (_, i) => ({
+-  id: String(i + 1), name: ['Black Lotus','The One Ring','Lightning Bolt','Mox Pearl','Sheoldred','Omnath','Birds of Paradise','Serra Angel','Pikachu VMAX','Charizard ex','Dark Magician','Blue-Eyes White Dragon','Elsa - Spirit of Winter','Ariel','Kiki-Jiki','Phyrexian Metamorph','Vampire Nocturnus','Teferi','Sol Ring','Ichor Wellspring','Blue-Eyes Alternative','Pikachu Illustrator','Misty','Gambit'][i % 24] + (i > 23 ? ` ${i}` : ''),
++  id: String(i + 1),
++  name:
++    [
++      'Black Lotus',
++      'The One Ring',
++      'Lightning Bolt',
++      'Mox Pearl',
++      'Sheoldred',
++      'Omnath',
++      'Birds of Paradise',
++      'Serra Angel',
++      'Pikachu VMAX',
++      'Charizard ex',
++      'Dark Magician',
++      'Blue-Eyes White Dragon',
++      'Elsa - Spirit of Winter',
++      'Ariel',
++      'Kiki-Jiki',
++      'Phyrexian Metamorph',
++      'Vampire Nocturnus',
++      'Teferi',
++      'Sol Ring',
++      'Ichor Wellspring',
++      'Blue-Eyes Alternative',
++      'Pikachu Illustrator',
++      'Misty',
++      'Gambit',
++    ][i % 24] + (i > 23 ? ` ${i}` : ''),
+   game: i < 20 ? 'Magic: The Gathering' : i < 22 ? 'Pokémon' : i === 22 ? 'Yu-Gi-Oh!' : 'Lorcana',
+-  edition: ['Alpha','The Lord of the Rings','Alpha','Double Masters','Dominaria','Zendikar','Magic 2011','Core Set','Crown Zenith','Obsidian Flames','Blue-Eyes White Dragon','Legend of Blue Eyes','Archazia’s Island','Lorcana'][i % 14],
+-  rarity: i % 5 === 0 ? 'Mítica' : i % 3 === 0 ? 'Rara' : 'Incomum', condition: ['NM','SP','MP','HP'][i % 4], price: 12 + i * 17.8, quantity: 1 + (i % 3), image: cover(i + 1), trend: i % 3 === 0 ? -8 : i % 4 === 0 ? 14 : 5,
++  edition: [
++    'Alpha',
++    'The Lord of the Rings',
++    'Alpha',
++    'Double Masters',
++    'Dominaria',
++    'Zendikar',
++    'Magic 2011',
++    'Core Set',
++    'Crown Zenith',
++    'Obsidian Flames',
++    'Blue-Eyes White Dragon',
++    'Legend of Blue Eyes',
++    'Archazia’s Island',
++    'Lorcana',
++  ][i % 14],
++  rarity: i % 5 === 0 ? 'Mítica' : i % 3 === 0 ? 'Rara' : 'Incomum',
++  condition: ['NM', 'SP', 'MP', 'HP'][i % 4],
++  price: 12 + i * 17.8,
++  quantity: 1 + (i % 3),
++  image: cover(i + 1),
++  trend: i % 3 === 0 ? -8 : i % 4 === 0 ? 14 : 5,
+ }));
+ export const stores = [
+-  { id:'1', name:'Torres & Dados', distance:'1,2 km', hours:'Hoje, 12h-22h', games:['Magic','Yu-Gi-Oh!'], consign:true },
+-  { id:'2', name:'Meeple Station', distance:'2,8 km', hours:'Hoje, 14h-20h', games:['Pokémon','Lorcana'], consign:true },
+-  { id:'3', name:'Arena Nexus', distance:'4,1 km', hours:'Hoje, 10h-21h', games:['Magic','Pokémon'], consign:false },
+-  { id:'4', name:'Spellbound Café', distance:'5,6 km', hours:'Hoje, 11h-23h', games:['Magic','Lorcana'], consign:true },
+-  { id:'5', name:'The Collector Vault', distance:'8,2 km', hours:'Amanhã, 09h-18h', games:['Yu-Gi-Oh!','Pokémon'], consign:false },
++  {
++    id: '1',
++    name: 'Torres & Dados',
++    distance: '1,2 km',
++    hours: 'Hoje, 12h-22h',
++    games: ['Magic', 'Yu-Gi-Oh!'],
++    consign: true,
++  },
++  {
++    id: '2',
++    name: 'Meeple Station',
++    distance: '2,8 km',
++    hours: 'Hoje, 14h-20h',
++    games: ['Pokémon', 'Lorcana'],
++    consign: true,
++  },
++  {
++    id: '3',
++    name: 'Arena Nexus',
++    distance: '4,1 km',
++    hours: 'Hoje, 10h-21h',
++    games: ['Magic', 'Pokémon'],
++    consign: false,
++  },
++  {
++    id: '4',
++    name: 'Spellbound Café',
++    distance: '5,6 km',
++    hours: 'Hoje, 11h-23h',
++    games: ['Magic', 'Lorcana'],
++    consign: true,
++  },
++  {
++    id: '5',
++    name: 'The Collector Vault',
++    distance: '8,2 km',
++    hours: 'Amanhã, 09h-18h',
++    games: ['Yu-Gi-Oh!', 'Pokémon'],
++    consign: false,
++  },
+ ];
+ export const events = [
+-  { id:'1', title:'Friday Night Magic', store:'Torres & Dados', game:'Magic: The Gathering', date:'SEX 24 OUT · 19:00' },
+-  { id:'2', title:'Draft de expansão', store:'Meeple Station', game:'Lorcana', date:'SÁB 25 OUT · 14:00' },
+-  { id:'3', title:'Liga Pokémon', store:'Arena Nexus', game:'Pokémon', date:'DOM 26 OUT · 10:30' },
+-  { id:'4', title:'Yugi Clash', store:'The Collector Vault', game:'Yu-Gi-Oh!', date:'QUI 30 OUT · 19:30' },
+-  { id:'5', title:'Noite de Commander', store:'Spellbound Café', game:'Magic: The Gathering', date:'SEX 31 OUT · 20:00' },
+-  { id:'6', title:'Learn to Play Lorcana', store:'Meeple Station', game:'Lorcana', date:'DOM 2 NOV · 16:00' },
++  {
++    id: '1',
++    title: 'Friday Night Magic',
++    store: 'Torres & Dados',
++    game: 'Magic: The Gathering',
++    date: 'SEX 24 OUT · 19:00',
++  },
++  {
++    id: '2',
++    title: 'Draft de expansão',
++    store: 'Meeple Station',
++    game: 'Lorcana',
++    date: 'SÁB 25 OUT · 14:00',
++  },
++  {
++    id: '3',
++    title: 'Liga Pokémon',
++    store: 'Arena Nexus',
++    game: 'Pokémon',
++    date: 'DOM 26 OUT · 10:30',
++  },
++  {
++    id: '4',
++    title: 'Yugi Clash',
++    store: 'The Collector Vault',
++    game: 'Yu-Gi-Oh!',
++    date: 'QUI 30 OUT · 19:30',
++  },
++  {
++    id: '5',
++    title: 'Noite de Commander',
++    store: 'Spellbound Café',
++    game: 'Magic: The Gathering',
++    date: 'SEX 31 OUT · 20:00',
++  },
++  {
++    id: '6',
++    title: 'Learn to Play Lorcana',
++    store: 'Meeple Station',
++    game: 'Lorcana',
++    date: 'DOM 2 NOV · 16:00',
++  },
+ ];
+ export const anuncios = [
+-  { id:'101', cardId:'1', title:'Black Lotus', condition:'NM', price:420, qty:1, status:'Ativo' },
+-  { id:'102', cardId:'10', title:'Charizard ex', condition:'SP', price:185, qty:2, status:'Vendido' },
+-  { id:'103', cardId:'12', title:'Blue-Eyes White Dragon', condition:'MP', price:38, qty:1, status:'Pausado' },
++  {
++    id: '101',
++    cardId: '1',
++    title: 'Black Lotus',
++    condition: 'NM',
++    price: 420,
++    qty: 1,
++    status: 'Ativo',
++  },
++  {
++    id: '102',
++    cardId: '10',
++    title: 'Charizard ex',
++    condition: 'SP',
++    price: 185,
++    qty: 2,
++    status: 'Vendido',
++  },
++  {
++    id: '103',
++    cardId: '12',
++    title: 'Blue-Eyes White Dragon',
++    condition: 'MP',
++    price: 38,
++    qty: 1,
++    status: 'Pausado',
++  },
++];
++export const consignacoes = [
++  { id: '201', card: 'The One Ring', status: 'À venda', step: 3, repasse: 310 },
+ ];
+-export const consignacoes = [{ id:'201', card:'The One Ring', status:'À venda', step:3, repasse:310 }];
+ export const propostas = [
+-  { id:'301', direction:'recebida', card:'Sheoldred', offer:92, from:'Nina' },
+-  { id:'302', direction:'enviada', card:'Pikachu VMAX', offer:55, from:'Caio' },
++  { id: '301', direction: 'recebida', card: 'Sheoldred', offer: 92, from: 'Nina' },
++  { id: '302', direction: 'enviada', card: 'Pikachu VMAX', offer: 55, from: 'Caio' },
+ ];
+ export const notifications = [
+-  { id:'n1', type:'Propostas', title:'Nova proposta em Sheoldred', time:'Agora', unread:true },
+-  { id:'n2', type:'Vendas', title:'Black Lotus vendido', time:'Há 2h', unread:true },
+-  { id:'n3', type:'Repasses', title:'Repasse de R$310 aprovado', time:'Ontem', unread:false },
+-  { id:'n4', type:'Alertas de preço', title:'Charizard ex caiu 8%', time:'Ontem', unread:false },
++  { id: 'n1', type: 'Propostas', title: 'Nova proposta em Sheoldred', time: 'Agora', unread: true },
++  { id: 'n2', type: 'Vendas', title: 'Black Lotus vendido', time: 'Há 2h', unread: true },
++  { id: 'n3', type: 'Repasses', title: 'Repasse de R$310 aprovado', time: 'Ontem', unread: false },
++  {
++    id: 'n4',
++    type: 'Alertas de preço',
++    title: 'Charizard ex caiu 8%',
++    time: 'Ontem',
++    unread: false,
++  },
+ ];
+diff --git a/src/services/api.js b/src/services/api.js
+index 8249d45..cbfb195 100644
+--- a/src/services/api.js
++++ b/src/services/api.js
+@@ -1,11 +1,40 @@
+-import { cards, stores, events, anuncios, consignacoes, propostas, notifications } from '../mocks/dados';
++import {
++  cards,
++  stores,
++  events,
++  anuncios,
++  consignacoes,
++  propostas,
++  notifications,
++} from '../mocks/dados';
+ const wait = (ms = 350) => new Promise((resolve) => setTimeout(resolve, ms));
+ 
+-export async function getCards() { await wait(); return cards; }
+-export async function getStores() { await wait(); return stores; }
+-export async function getEvents() { await wait(); return events; }
+-export async function getAds() { await wait(); return anuncios; }
+-export async function getConsignments() { await wait(); return consignacoes; }
+-export async function getProposals() { await wait(); return propostas; }
+-export async function getNotifications() { await wait(); return notifications; }
++export async function getCards() {
++  await wait();
++  return cards;
++}
++export async function getStores() {
++  await wait();
++  return stores;
++}
++export async function getEvents() {
++  await wait();
++  return events;
++}
++export async function getAds() {
++  await wait();
++  return anuncios;
++}
++export async function getConsignments() {
++  await wait();
++  return consignacoes;
++}
++export async function getProposals() {
++  await wait();
++  return propostas;
++}
++export async function getNotifications() {
++  await wait();
++  return notifications;
++}
+ // TODO: trocar cada mock por fetch real e tratar CORS no servidor Express.
+diff --git a/src/services/storage.web.js b/src/services/storage.web.js
+index 0992bda..dbfbdbe 100644
+--- a/src/services/storage.web.js
++++ b/src/services/storage.web.js
+@@ -1,6 +1,12 @@
+ export const storage = {
+   getItem: (key) => Promise.resolve(window.localStorage.getItem(key)),
+-  setItem: (key, value) => { window.localStorage.setItem(key, value); return Promise.resolve(); },
+-  removeItem: (key) => { window.localStorage.removeItem(key); return Promise.resolve(); },
++  setItem: (key, value) => {
++    window.localStorage.setItem(key, value);
++    return Promise.resolve();
++  },
++  removeItem: (key) => {
++    window.localStorage.removeItem(key);
++    return Promise.resolve();
++  },
+ };
+ // TODO: quando houver backend, migrar o refresh token para cookie httpOnly.
+diff --git a/src/theme.js b/src/theme.js
+index e34d14c..baaaad9 100644
+--- a/src/theme.js
++++ b/src/theme.js
+@@ -1,11 +1,35 @@
+ export const theme = {
+   colors: {
+-    background: '#0f1923', surface: '#1b2838', surfaceRaised: '#223447',
+-    accent: '#66c0f4', success: '#66c0f4', greenStart: '#5ba32b', greenEnd: '#a4d007',
+-    text: '#f4f7fb', textMuted: '#9fb1c2', border: '#344b61', danger: '#ef6b73', warning: '#f3ba47',
++    background: '#0f1923',
++    surface: '#1b2838',
++    surfaceRaised: '#223447',
++    accent: '#66c0f4',
++    success: '#66c0f4',
++    greenStart: '#5ba32b',
++    greenEnd: '#a4d007',
++    text: '#f4f7fb',
++    textMuted: '#9fb1c2',
++    border: '#344b61',
++    danger: '#ef6b73',
++    warning: '#f3ba47',
+   },
+   spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 },
+   radius: { sm: 6, md: 10, lg: 16, pill: 999 },
+-  typography: { title: 28, h2: 22, h3: 17, body: 15, small: 13, weight: { regular: '400', medium: '600', bold: '800' } },
+-  shadow: { card: { shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 } },
++  typography: {
++    title: 28,
++    h2: 22,
++    h3: 17,
++    body: 15,
++    small: 13,
++    weight: { regular: '400', medium: '600', bold: '800' },
++  },
++  shadow: {
++    card: {
++      shadowColor: '#000',
++      shadowOpacity: 0.25,
++      shadowRadius: 8,
++      shadowOffset: { width: 0, height: 4 },
++      elevation: 4,
++    },
++  },
+ };
+-- 
+2.43.0
+
