@@ -46,7 +46,7 @@ export default function Perfil() {
       <Text style={styles.title}>Vitrine</Text>
       <View style={styles.grid}>
         {cards.slice(0, 3).map((card) => (
-          <CardCapa key={card.id} item={card} compact />
+          <CardCapa key={card.id} item={card} compact onPress={() => router.push(`/carta/${card.id}`)}/>
         ))}
       </View>
       <Text style={styles.title}>Conquistas</Text>

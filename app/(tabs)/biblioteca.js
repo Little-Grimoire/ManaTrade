@@ -11,6 +11,7 @@ import ListaItem from '../../src/components/ListaItem';
 import { getCards } from '../../src/services/api';
 import { useBreakpoint } from '../../src/hooks/useBreakpoint';
 import { theme } from '../../src/theme';
+import { router } from 'expo-router';
 
 export default function Biblioteca() {
   const [cards, setCards] = useState([]);
@@ -89,7 +90,7 @@ export default function Biblioteca() {
               style={[styles.grid, { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }]}
             >
               {visible.map((card) => (
-                <CardCapa key={card.id} item={card} />
+                <CardCapa key={card.id} item={card} onPress={() => router.push(`/carta/${card.id}`)}/>
               ))}
             </View>
           ) : (
@@ -99,6 +100,7 @@ export default function Biblioteca() {
                 title={card.name}
                 subtitle={`${card.edition} · ${card.condition}`}
                 meta={`R$ ${card.price.toFixed(2)}`}
+                onPress={() => router.push(`/carta/${card.id}`)}
               />
             ))
           )}
