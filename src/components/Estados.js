@@ -6,7 +6,7 @@ export function EstadoVazio({ titulo = 'Nada por aqui', texto, acao, onPress }) 
     <View style={styles.wrap}>
       <Text style={styles.icon}>◇</Text>
       <Text style={styles.title}>{titulo}</Text>
-      {!!texto && <Text style={styles.text}>{texto}</Text>}{' '}
+      {!!texto && <Text style={styles.text}>{texto}</Text>}
       {!!acao && (
         <Pressable style={styles.action} onPress={onPress}>
           <Text style={styles.actionText}>{acao}</Text>
