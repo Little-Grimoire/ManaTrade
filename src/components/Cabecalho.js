@@ -24,4 +24,27 @@ export default function Cabecalho({ title, subtitle, back = false, action }) {
     </View>
   );
 }
-const styles = StyleSheet.create({ header: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, marginBottom: theme.spacing.lg }, copy: { flex: 1 }, back: { width: 44, height: 44, borderRadius: theme.radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.surface }, title: { color: theme.colors.text, fontSize: theme.typography.title, fontWeight: theme.typography.weight.bold }, subtitle: { color: theme.colors.textMuted, marginTop: 2 } });
+const styles = StyleSheet.create({
+  header: {
+    minHeight: 64,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+  },
+  copy: { flex: 1 },
+  back: {
+    width: 44,
+    height: 44,
+    borderRadius: theme.radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.surface,
+  },
+  title: {
+    color: theme.colors.text,
+    fontSize: theme.typography.title,
+    fontWeight: theme.typography.weight.bold,
+  },
+  subtitle: { color: theme.colors.textMuted, marginTop: 2 },
+});

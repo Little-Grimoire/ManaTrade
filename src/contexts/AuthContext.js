@@ -24,11 +24,16 @@ export function AuthProvider({ children }) {
       }
       setLoading(false);
     });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   const signIn = async (profile = {}) => {
-    const nextUser = { name: profile.name || 'Jonathan Silva', email: profile.email || 'j@manatrade.com' };
+    const nextUser = {
+      name: profile.name || 'Jonathan Silva',
+      email: profile.email || 'j@manatrade.com',
+    };
     await storage.setItem(SESSION_KEY, JSON.stringify(nextUser));
     setUser(nextUser);
     setAuthenticated(true);
@@ -47,4 +52,6 @@ export function AuthProvider({ children }) {
   );
 }
 
-export function useAuth() { return useContext(AuthContext); }
+export function useAuth() {
+  return useContext(AuthContext);
+}

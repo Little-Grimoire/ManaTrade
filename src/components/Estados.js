@@ -1,7 +1,62 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { theme } from '../theme';
 
-export function EstadoVazio({ titulo = 'Nada por aqui', texto, acao, onPress }) { return <View style={styles.wrap}><Text style={styles.icon}>◇</Text><Text style={styles.title}>{titulo}</Text>{!!texto && <Text style={styles.text}>{texto}</Text>} {!!acao && <Pressable style={styles.action} onPress={onPress}><Text style={styles.actionText}>{acao}</Text></Pressable>}</View>; }
-export function EstadoErro({ texto = 'Não foi possível carregar.', onRetry }) { return <View style={styles.wrap}><Text style={styles.icon}>!</Text><Text style={styles.title}>Algo deu errado</Text><Text style={styles.text}>{texto}</Text><Pressable style={styles.action} onPress={onRetry}><Text style={styles.actionText}>Tentar de novo</Text></Pressable></View>; }
-export function Skeleton({ width = '100%', height = 120 }) { return <View style={[styles.skeleton, { width, height }]} />; }
-const styles = StyleSheet.create({ wrap: { minHeight: 220, alignItems: 'center', justifyContent: 'center', padding: theme.spacing.xxl }, icon: { color: theme.colors.accent, fontSize: 38, marginBottom: theme.spacing.sm }, title: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, text: { color: theme.colors.textMuted, textAlign: 'center', marginTop: theme.spacing.sm, maxWidth: 340 }, action: { minHeight: 44, marginTop: theme.spacing.lg, paddingHorizontal: theme.spacing.lg, justifyContent: 'center', borderRadius: theme.radius.sm, backgroundColor: theme.colors.accent }, actionText: { color: theme.colors.background, fontWeight: theme.typography.weight.bold }, skeleton: { borderRadius: theme.radius.md, backgroundColor: theme.colors.surface, opacity: 0.7 } });
+export function EstadoVazio({ titulo = 'Nada por aqui', texto, acao, onPress }) {
+  return (
+    <View style={styles.wrap}>
+      <Text style={styles.icon}>◇</Text>
+      <Text style={styles.title}>{titulo}</Text>
+      {!!texto && <Text style={styles.text}>{texto}</Text>}{' '}
+      {!!acao && (
+        <Pressable style={styles.action} onPress={onPress}>
+          <Text style={styles.actionText}>{acao}</Text>
+        </Pressable>
+      )}
+    </View>
+  );
+}
+export function EstadoErro({ texto = 'Não foi possível carregar.', onRetry }) {
+  return (
+    <View style={styles.wrap}>
+      <Text style={styles.icon}>!</Text>
+      <Text style={styles.title}>Algo deu errado</Text>
+      <Text style={styles.text}>{texto}</Text>
+      <Pressable style={styles.action} onPress={onRetry}>
+        <Text style={styles.actionText}>Tentar de novo</Text>
+      </Pressable>
+    </View>
+  );
+}
+export function Skeleton({ width = '100%', height = 120 }) {
+  return <View style={[styles.skeleton, { width, height }]} />;
+}
+const styles = StyleSheet.create({
+  wrap: {
+    minHeight: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: theme.spacing.xxl,
+  },
+  icon: { color: theme.colors.accent, fontSize: 38, marginBottom: theme.spacing.sm },
+  title: {
+    color: theme.colors.text,
+    fontSize: theme.typography.h3,
+    fontWeight: theme.typography.weight.bold,
+  },
+  text: {
+    color: theme.colors.textMuted,
+    textAlign: 'center',
+    marginTop: theme.spacing.sm,
+    maxWidth: 340,
+  },
+  action: {
+    minHeight: 44,
+    marginTop: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    justifyContent: 'center',
+    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.accent,
+  },
+  actionText: { color: theme.colors.background, fontWeight: theme.typography.weight.bold },
+  skeleton: { borderRadius: theme.radius.md, backgroundColor: theme.colors.surface, opacity: 0.7 },
+});

@@ -1,2 +1,132 @@
-import Head from 'expo-router/head';import { useEffect,useState } from 'react';import { Pressable,ScrollView,StyleSheet,Text,View } from 'react-native';import Cabecalho from '../src/components/Cabecalho';import EstadoErro from '../src/components/EstadoErro';import EstadoVazio from '../src/components/EstadoVazio';import Skeleton from '../src/components/Skeleton';import { getEvents } from '../src/services/api';import { theme } from '../src/theme';
-export default function Comunidade(){const [events,setEvents]=useState([]);const [status,setStatus]=useState('loading');const [going,setGoing]=useState([]);const load=async()=>{setStatus('loading');try{setEvents(await getEvents());setStatus('ready')}catch{setStatus('error')}};useEffect(()=>{load()},[]);if(status==='loading')return <View style={styles.page}><Skeleton height={260}/></View>;if(status==='error')return <EstadoErro onRetry={load}/>;return <ScrollView contentContainerStyle={styles.page}><Head><title>Comunidade e eventos | ManaTrade</title></Head><Cabecalho title="Comunidade e eventos" back /><Text style={styles.feedTitle}>Próximos encontros</Text>{events.length?events.map((event)=><View key={event.id} style={styles.event}><View style={styles.date}><Text style={styles.dateText}>{event.date.slice(0,8)}</Text></View><View style={styles.copy}><Text style={styles.title}>{event.title}</Text><Text style={styles.meta}>{event.store} · {event.game}</Text><Text style={styles.time}>{event.date}</Text><Pressable accessibilityRole="button" style={[styles.button,going.includes(event.id)&&styles.going]} onPress={()=>setGoing((current)=>current.includes(event.id)?current.filter((id)=>id!==event.id):[...current,event.id])}><Text style={styles.buttonText}>{going.includes(event.id)?'Vou participar ✓':'Vou participar'}</Text></Pressable></View></View>):<EstadoVazio titulo="Nenhum evento"/>}</ScrollView>}const styles=StyleSheet.create({page:{flexGrow:1,maxWidth:1320,width:'100%',alignSelf:'center',padding:theme.spacing.lg},feedTitle:{color:theme.colors.text,fontSize:theme.typography.h2,fontWeight:theme.typography.weight.bold,marginBottom:theme.spacing.lg},event:{flexDirection:'row',gap:theme.spacing.lg,padding:theme.spacing.lg,marginBottom:theme.spacing.md,borderRadius:theme.radius.md,backgroundColor:theme.colors.surface,borderWidth:1,borderColor:theme.colors.border},date:{width:64,height:64,alignItems:'center',justifyContent:'center',borderRadius:theme.radius.sm,backgroundColor:theme.colors.accent},dateText:{color:theme.colors.background,fontWeight:theme.typography.weight.bold,textAlign:'center'},copy:{flex:1,gap:theme.spacing.xs},title:{color:theme.colors.text,fontSize:theme.typography.h3,fontWeight:theme.typography.weight.bold},meta:{color:theme.colors.textMuted},time:{color:theme.colors.accent,fontSize:theme.typography.small},button:{alignSelf:'flex-start',minHeight:44,justifyContent:'center',paddingHorizontal:theme.spacing.lg,marginTop:theme.spacing.sm,borderRadius:theme.radius.sm,backgroundColor:theme.colors.greenStart},going:{backgroundColor:theme.colors.greenEnd},buttonText:{color:theme.colors.background,fontWeight:theme.typography.weight.bold}});
+import Head from 'expo-router/head';
+import { useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Cabecalho from '../src/components/Cabecalho';
+import EstadoErro from '../src/components/EstadoErro';
+import EstadoVazio from '../src/components/EstadoVazio';
+import Skeleton from '../src/components/Skeleton';
+import { getEvents } from '../src/services/api';
+import { theme } from '../src/theme';
+export default function Comunidade() {
+  const [events, setEvents] = useState([]);
+  const [status, setStatus] = useState('loading');
+  const [going, setGoing] = useState([]);
+  const load = async () => {
+    setStatus('loading');
+    try {
+      setEvents(await getEvents());
+      setStatus('ready');
+    } catch {
+      setStatus('error');
+    }
+  };
+  useEffect(() => {
+    load();
+  }, []);
+  if (status === 'loading')
+    return (
+      <View style={styles.page}>
+        <Skeleton height={260} />
+      </View>
+    );
+  if (status === 'error') return <EstadoErro onRetry={load} />;
+  return (
+    <ScrollView contentContainerStyle={styles.page}>
+      <Head>
+        <title>Comunidade e eventos | ManaTrade</title>
+      </Head>
+      <Cabecalho title="Comunidade e eventos" back />
+      <Text style={styles.feedTitle}>Próximos encontros</Text>
+      {events.length ? (
+        events.map((event) => (
+          <View key={event.id} style={styles.event}>
+            <View style={styles.date}>
+              <Text style={styles.dateText}>{event.date.slice(0, 8)}</Text>
+            </View>
+            <View style={styles.copy}>
+              <Text style={styles.title}>{event.title}</Text>
+              <Text style={styles.meta}>
+                {event.store} · {event.game}
+              </Text>
+              <Text style={styles.time}>{event.date}</Text>
+              <Pressable
+                accessibilityRole="button"
+                style={[styles.button, going.includes(event.id) && styles.going]}
+                onPress={() =>
+                  setGoing((current) =>
+                    current.includes(event.id)
+                      ? current.filter((id) => id !== event.id)
+                      : [...current, event.id],
+                  )
+                }
+              >
+                <Text style={styles.buttonText}>
+                  {going.includes(event.id) ? 'Vou participar ✓' : 'Vou participar'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        ))
+      ) : (
+        <EstadoVazio titulo="Nenhum evento" />
+      )}
+    </ScrollView>
+  );
+}
+const styles = StyleSheet.create({
+  page: {
+    flexGrow: 1,
+    maxWidth: 1320,
+    width: '100%',
+    alignSelf: 'center',
+    padding: theme.spacing.lg,
+  },
+  feedTitle: {
+    color: theme.colors.text,
+    fontSize: theme.typography.h2,
+    fontWeight: theme.typography.weight.bold,
+    marginBottom: theme.spacing.lg,
+  },
+  event: {
+    flexDirection: 'row',
+    gap: theme.spacing.lg,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  date: {
+    width: 64,
+    height: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.accent,
+  },
+  dateText: {
+    color: theme.colors.background,
+    fontWeight: theme.typography.weight.bold,
+    textAlign: 'center',
+  },
+  copy: { flex: 1, gap: theme.spacing.xs },
+  title: {
+    color: theme.colors.text,
+    fontSize: theme.typography.h3,
+    fontWeight: theme.typography.weight.bold,
+  },
+  meta: { color: theme.colors.textMuted },
+  time: { color: theme.colors.accent, fontSize: theme.typography.small },
+  button: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: theme.spacing.lg,
+    marginTop: theme.spacing.sm,
+    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.greenStart,
+  },
+  going: { backgroundColor: theme.colors.greenEnd },
+  buttonText: { color: theme.colors.background, fontWeight: theme.typography.weight.bold },
+});
