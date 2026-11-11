@@ -70,7 +70,7 @@ Nenhuma chave de API é necessária; o Scryfall é público. O arquivo `.env` n�
 
 - `ml/README.md`: notebook do TP, dados e reprodução
 - `backend-ml/README.md`: rotas da API de ML
-- `docs/decisoes_arquitetura_ml.md`: decisões de arquitetura
+- `docs/definicao_tema.md`, `docs/prd.md`, `docs/modelagem_dados.md`, `docs/decisoes_arquitetura.md`
 
 ## Equipe
 
