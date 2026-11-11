@@ -36,7 +36,7 @@ Validação cruzada (5 folds agrupados por deck, média ± desvio):
 
 - Teste (36 decks nunca vistos), MLP: PR-AUC 0,763; ROC-AUC 0,888; F1 0,673; top-10 recall 0,522 (acaso 0,043); top-1 0,195 (acaso 0,004). Baseline de popularidade: top-10 = 0,282.
 - Ablação (MLP, CV): sem `log_edhrec_rank` 0,725; sem `train_pop` 0,739; sem nenhuma popularidade 0,557.
-- Regra de remoção (decks de teste): intruso dentro da cor = pior carta em 36,1% (acaso 1,3%) e entre as 5 piores em 58,3%; intruso fora da cor = pior em 27,3% (corrigido no app por regra de legalidade, DA07). Decisão com δ = 0,1: acurácia balanceada 0,815.
+- Regra de remoção (decks de teste): intruso dentro da cor = pior carta em 36,1% (acaso 1,3%) e entre as 5 piores em 58,3%; intruso fora da cor = pior em 27,3% (corrigido no app por regra de legalidade, DA05). Decisão com δ = 0,1: acurácia balanceada 0,815.
 - Figuras: `cv_boxplot.png`, `teste_curvas_confusao.png`, `importancia.png`.
 
 ## 5. Discussão
