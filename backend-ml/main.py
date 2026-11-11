@@ -3,8 +3,7 @@
 Carrega o modelo exportado pelo notebook (ml/models/best_model.joblib) e usa o MESMO
 pacote de features (ml/manatrade_ml). Rodar: uvicorn main:app --port 8000 (ver README).
 """
-import base64, difflib, json, os, sys, urllib.request
-from functools import lru_cache
+import difflib, os, sys
 from pathlib import Path
 
 import joblib
@@ -139,34 +138,3 @@ def evaluate(req: EvalRequest):
             "message": f"Melhora o deck. Remova: {BY_ID.name[w.oracle_id]}" if improves else "Não melhora o deck.",
             "candidate": card_out(cand, s_c), "remove": card_out(w.oracle_id, w.score) if improves else None,
             "weakest": weakest, "unknown": unknown, "delta": DELTA}
-
-
-class ScanRequest(BaseModel):
-    image_base64: str = Field(..., description="JPEG/PNG em base64 (sem prefixo data:)")
-    mime_type: str = "image/jpeg"
-
-
-@app.post("/scan")
-def scan(req: ScanRequest):
-    """Identifica a carta numa foto com LLM multimodal (Gemini). Usado no mobile, onde
-    Tesseract.js não roda. Sem GEMINI_API_KEY ou se a LLM falhar -> 503 e o app cai
-    para digitação manual com busca fuzzy."""
-    key = os.getenv("GEMINI_API_KEY")
-    if not key:
-        raise HTTPException(503, "LLM não configurada (GEMINI_API_KEY ausente)")
-    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-    body = {"contents": [{"parts": [
-        {"text": 'Esta é a foto de uma carta de Magic: The Gathering. Responda SOMENTE JSON: '
-                 '{"name": "<nome em inglês impresso no topo da carta>", "confidence": <0..1>}'},
-        {"inline_data": {"mime_type": req.mime_type, "data": req.image_base64}}]}],
-        "generationConfig": {"responseMimeType": "application/json", "temperature": 0}}
-    try:
-        r = urllib.request.Request(
-            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-            data=json.dumps(body).encode(), headers={"Content-Type": "application/json", "x-goog-api-key": key})
-        out = json.load(urllib.request.urlopen(r, timeout=30))
-        parsed = json.loads(out["candidates"][0]["content"]["parts"][0]["text"])
-        raw_name = str(parsed["name"])
-    except Exception as e:  # formato inesperado ou falha de rede -> fallback no app
-        raise HTTPException(503, f"falha ao interpretar a imagem: {type(e).__name__}")
-    return {"raw_text": raw_name, "confidence": parsed.get("confidence"), "matches": match(raw_name)}
