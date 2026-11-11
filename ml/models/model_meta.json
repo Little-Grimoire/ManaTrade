@@ -1,0 +1,9 @@
+{
+  "delta": 0.1,
+  "model_name": "MLP",
+  "sklearn_version": "1.9.1",
+  "n_decks_train": 178,
+  "random_state": 42,
+  "cv_pr_auc": 0.7610813053213403,
+  "test_pr_auc": 0.762995970281668
+}
