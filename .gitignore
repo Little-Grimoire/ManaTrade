@@ -150,3 +150,6 @@ ml/notebooks/manatrade_ml/
 
 # Backend (Web 2): banco SQLite de desenvolvimento
 backend/data/
+
+# Ambiente Python do backend-ml (criado com uv)
+.venv/

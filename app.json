@@ -25,6 +25,12 @@
     },
     "plugins": [
       "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O ManaScan usa a câmera para reconhecer suas cartas."
+        }
+      ],
       "expo-router",
       "expo-secure-store",
       "expo-status-bar",

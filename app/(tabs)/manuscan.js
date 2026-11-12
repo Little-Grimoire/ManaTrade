@@ -1,7 +1,8 @@
 import Head from 'expo-router/head';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, Image, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useRef, useState } from 'react';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Cabecalho from '../../src/components/Cabecalho';
 import BotaoPrimario from '../../src/components/BotaoPrimario';
@@ -11,7 +12,7 @@ import EstadoErro from '../../src/components/EstadoErro';
 import Skeleton from '../../src/components/Skeleton';
 import { ocrAvailable, ocrCandidateLines } from '../../src/services/ocr';
 import { fuzzyCard } from '../../src/services/scryfall';
-import { evaluateCard, matchCardName } from '../../src/services/mlApi';
+import { evaluateInDecks, matchCardName, scanCard } from '../../src/services/mlApi';
 import { adicionarCartaNoDeck, deckParaAvaliacao, listarDecks, obterDeck } from '../../src/services/decks';
 import { CONDICOES, adicionarNaColecao } from '../../src/services/colecao';
 import { adicionarDesejo } from '../../src/services/desejos';
@@ -22,6 +23,7 @@ const VERDICT = {
   no_improvement: { label: 'NÃO MELHORA', color: theme.colors.warning },
   illegal: { label: 'NÃO PODE ENTRAR', color: theme.colors.danger },
   already_in_deck: { label: 'JÁ ESTÁ NO DECK', color: theme.colors.textMuted },
+  error: { label: 'SEM AVALIAÇÃO', color: theme.colors.textMuted },
 };
 
 export default function ManaScan() {
@@ -38,35 +40,64 @@ export default function ManaScan() {
   const [foil, setFoil] = useState(false);
   const [aviso, setAviso] = useState(null); // { ok, texto } resultado das ações
   const [ocupado, setOcupado] = useState(false);
-  const [escolha, setEscolha] = useState(null); // { acao: 'adicionar' | 'avaliar', decks: [...] }
-  const [evaluation, setEvaluation] = useState(null);
+  const [escolha, setEscolha] = useState(null); // { decks: [...] } escolha do deck para adicionar
+  const [evaluation, setEvaluation] = useState(null); // { results: [...] } | { error } | { aviso, criarDeck }
   const [evaluating, setEvaluating] = useState(false);
+  const [alternativas, setAlternativas] = useState([]); // outros nomes lidos na foto
+  const [focada, setFocada] = useState(false); // a câmera só fica ligada com a aba visível
+
+  const avaliacaoAtual = useRef(0); // ignora respostas de uma carta anterior
+
+  useFocusEffect(useCallback(() => { setFocada(true); return () => setFocada(false); }, []));
 
   // ---------- identificação ----------
 
-  // OCR no navegador (web) -> busca aproximada no Scryfall. No celular: nome digitado.
+  // Foto -> API de ML (/scan: OCR + catálogo) -> dados da carta no Scryfall -> avaliação nos decks.
+  // Se o servidor de OCR não responder, a web ainda tenta o OCR no navegador (Tesseract.js).
   const identify = async (asset) => {
     setState('loading'); setError('');
     try {
-      let candidates = [];
-      if (ocrAvailable) {
-        setStep('Lendo o texto da carta (OCR)…');
-        candidates = await ocrCandidateLines(asset.uri);
+      let nomes = [];
+      let falhaServidor = null;
+      if (asset.base64 || asset.uri?.startsWith('data:')) {
+        setStep('Identificando a carta…');
+        try {
+          const { candidates } = await scanCard(asset.base64 || asset.uri);
+          nomes = candidates.map((c) => c.name);
+        } catch (e) { falhaServidor = e; }
       }
-      setStep('Buscando no Scryfall…');
-      for (const c of candidates) {
-        const card = await fuzzyCard(c).catch(() => null);
-        if (card) { showCard(card); return; }
+      if (!nomes.length && ocrAvailable) {
+        setStep('Lendo o texto da carta (OCR no navegador)…');
+        nomes = await ocrCandidateLines(asset.uri).catch(() => []);
       }
-      setError(ocrAvailable ? 'Não conseguimos ler o nome da carta. Digite o nome abaixo.' : 'Digite o nome da carta fotografada.');
+      setStep('Buscando a carta no Scryfall…');
+      let falhaScryfall = null;
+      for (let i = 0; i < nomes.length; i++) {
+        const card = await fuzzyCard(nomes[i]).catch((e) => { falhaScryfall = e; return null; });
+        if (card) { showCard(card, nomes.slice(i + 1).filter((n) => n !== card.name).slice(0, 3)); return; }
+      }
+      setError(falhaScryfall ? `${falhaScryfall.message} Digite o nome da carta abaixo.`
+        : falhaServidor && !nomes.length
+        ? `${falhaServidor.message} Digite o nome da carta abaixo.`
+        : 'Não conseguimos ler o nome da carta. Tente outra foto (boa luz, carta reta) ou digite o nome.');
       setState('manual');
     } catch (e) { setError(e.message); setState('manual'); }
   };
 
-  const showCard = (card) => {
-    setResult(card); // { id, name, edition, image, typeLine, colorIdentity, priceUsd }
+  const showCard = (card, outras = []) => {
+    setResult(card); // { id, name, edition, image, typeLine, colorIdentity, priceUsd, mlData }
+    setAlternativas(outras);
     setCondicao('NM'); setFoil(false); setAviso(null); setEscolha(null); setEvaluation(null);
     setState('result');
+    avaliarNosDecks(card);
+  };
+
+  // "Não é essa carta?": troca pelo próximo nome lido na foto.
+  const trocarCarta = async (nome) => {
+    setOcupado(true);
+    const card = await fuzzyCard(nome).catch(() => null);
+    setOcupado(false);
+    if (card) showCard(card, alternativas.filter((n) => n !== nome));
   };
 
   const searchManual = async () => {
@@ -82,15 +113,7 @@ export default function ManaScan() {
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) { setError('Libere o acesso à biblioteca de fotos nas configurações do dispositivo.'); setState('error'); return; }
-    const photo = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
-    if (!photo.canceled) identify(photo.assets[0]);
-  };
-
-  const openCamera = async () => {
-    if (Platform.OS === 'web') { setError('A câmera não está disponível nesta sessão web. Use o arquivo da galeria.'); setState('permission'); return; }
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) { setError('O acesso à câmera foi negado. Libere a câmera nas configurações do dispositivo ou digite o nome da carta.'); setState('permission'); return; }
-    const photo = await ImagePicker.launchCameraAsync({ quality: 0.7 });
+    const photo = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.6, base64: true });
     if (!photo.canceled) identify(photo.assets[0]);
   };
 
@@ -110,44 +133,45 @@ export default function ManaScan() {
   const addDesejos = () => acao(() => adicionarDesejo(cartaRef()), `${result.name} adicionada à lista de desejos.`);
   const addDeck = (id, nome) => acao(async () => { await adicionarCartaNoDeck(id, cartaRef()); setEscolha(null); }, `${result.name} adicionada ao deck ${nome}.`);
 
-  // Abre a lista de decks para escolher (só Commander quando for avaliar com o ML).
-  const escolherDeck = async (tipo) => {
+  // Abre a lista de decks para escolher onde adicionar.
+  const escolherDeck = async () => {
     setOcupado(true); setAviso(null);
     try {
-      let decks = await listarDecks();
-      if (tipo === 'avaliar') decks = decks.filter((d) => d.formato === 'commander');
-      if (!decks.length) {
-        setAviso({ ok: false, texto: tipo === 'avaliar' ? 'Você ainda não tem um deck Commander. A avaliação usa o comandante e a lista do deck.' : 'Você ainda não tem decks.', criarDeck: true });
-      } else if (tipo === 'avaliar' && decks.length === 1) {
-        await avaliar(decks[0].id);
-      } else {
-        setEscolha({ acao: tipo, decks });
-      }
+      const decks = await listarDecks();
+      if (!decks.length) setAviso({ ok: false, texto: 'Você ainda não tem decks.', criarDeck: true });
+      else setEscolha({ decks });
     } catch (e) { setAviso({ ok: false, texto: e.message }); } finally { setOcupado(false); }
   };
 
-  // Avaliação carta × deck Commander (modelo de ML do TP via backend-ml).
-  const avaliar = async (id) => {
-    setEscolha(null); setEvaluating(true); setEvaluation(null);
+  // Classificação pelo modelo de ML (backend-ml): a carta, com os dados do Scryfall, é avaliada
+  // contra TODOS os decks Commander do usuário de uma vez. Resultado ordenado: positivos primeiro.
+  const avaliarNosDecks = async (card = result) => {
+    const minha = ++avaliacaoAtual.current;
+    const atual = () => minha === avaliacaoAtual.current;
+    setEvaluating(true); setEvaluation(null);
     try {
-      const deck = await obterDeck(id);
-      if (!deck.comandante) { setEvaluation({ error: `Defina o comandante do deck "${deck.nome}" para avaliar.` }); return; }
-      if (!deck.cartas.length) { setEvaluation({ error: `O deck "${deck.nome}" ainda não tem cartas.` }); return; }
-      setEvaluation({ ...(await evaluateCard({ ...deckParaAvaliacao(deck), candidate: result.name })), deckName: deck.nome });
-    } catch (e) { setEvaluation({ error: e.message }); } finally { setEvaluating(false); }
-  };
-
-  const avaliarClique = async () => {
-    // No modo deck, avalia direto no deck de origem (se for Commander).
-    if (modoDeck) {
-      const deck = await obterDeck(deckId).catch(() => null);
-      if (deck?.formato === 'commander') { avaliar(deckId); return; }
-    }
-    escolherDeck('avaliar');
+      const commander = (await listarDecks()).filter((d) => d.formato === 'commander');
+      if (!commander.length) {
+        if (atual()) setEvaluation({ aviso: 'Crie um deck Commander para saber se esta carta serve para ele.', criarDeck: true });
+        return;
+      }
+      const decks = await Promise.all(commander.map((d) => obterDeck(d.id)));
+      const pendentes = [];
+      const avaliaveis = [];
+      for (const d of decks) {
+        if (!d.comandante) pendentes.push({ deck_id: d.id, deck_name: d.nome, verdict: 'error', message: 'Defina o comandante para avaliar.' });
+        else if (!d.cartas.length) pendentes.push({ deck_id: d.id, deck_name: d.nome, verdict: 'error', message: 'O deck ainda não tem cartas.' });
+        else avaliaveis.push({ id: d.id, name: d.nome, ...deckParaAvaliacao(d) });
+      }
+      const resposta = avaliaveis.length ? await evaluateInDecks(card.mlData || { name: card.name }, avaliaveis) : { results: [] };
+      if (atual()) setEvaluation({ results: [...resposta.results, ...pendentes] });
+    } catch (e) {
+      if (atual()) setEvaluation({ error: e.status === 401 ? 'Entre na sua conta para avaliar a carta nos seus decks.' : e.message });
+    } finally { if (atual()) setEvaluating(false); }
   };
 
   const sairModoDeck = () => router.setParams({ deckId: '', deckNome: '' });
-  const verdict = evaluation && VERDICT[evaluation.verdict];
+  const positivos = evaluation?.results?.filter((r) => r.verdict === 'improves') || [];
 
   // ---------- telas ----------
 
@@ -193,6 +217,47 @@ export default function ManaScan() {
           <Text style={styles.title}>{result.name}</Text>
           {!!result.typeLine && <Text style={styles.label}>{result.typeLine}</Text>}
           <Text style={styles.label}>{[result.edition, result.priceUsd && `referência Scryfall US$ ${Number(result.priceUsd).toFixed(2)}`].filter(Boolean).join(' · ')}</Text>
+          {!!alternativas.length && (
+            <View style={styles.linha}>
+              <Text style={styles.small}>Não é essa?</Text>
+              {alternativas.map((n) => <ChipFiltro key={n} label={n} active={false} onPress={() => trocarCarta(n)} />)}
+            </View>
+          )}
+
+          <View style={styles.evalBox}>
+            <Text style={styles.eyebrow}>PARA OS SEUS DECKS COMMANDER</Text>
+            {evaluating ? (
+              <View style={styles.linha}><ActivityIndicator color={theme.colors.accent} /><Text style={styles.label}>O modelo está avaliando a carta nos seus decks…</Text></View>
+            ) : evaluation?.error ? (
+              <View style={{ gap: theme.spacing.sm }}>
+                <Text style={styles.warn}>{evaluation.error}</Text>
+                <BotaoSecundario label="Tentar de novo" onPress={() => avaliarNosDecks()} />
+              </View>
+            ) : evaluation?.aviso ? (
+              <View style={{ gap: theme.spacing.sm }}>
+                <Text style={styles.label}>{evaluation.aviso}</Text>
+                {evaluation.criarDeck && <BotaoSecundario label="Criar deck" onPress={() => router.push('/decks/novo')} />}
+              </View>
+            ) : evaluation?.results && (
+              <View style={{ gap: theme.spacing.sm }}>
+                <Text style={styles.verdictText}>
+                  {positivos.length ? `Carta positiva para ${positivos.length} de ${evaluation.results.length} deck(s)` : 'Não melhora nenhum dos seus decks'}
+                </Text>
+                {evaluation.results.map((r) => {
+                  const v = VERDICT[r.verdict] || VERDICT.error;
+                  return (
+                    <View key={String(r.deck_id)} style={[styles.verdict, { borderColor: v.color }]}>
+                      <Text style={[styles.eyebrow, { color: v.color }]}>{v.label} · {r.deck_name}</Text>
+                      <Text style={styles.label}>{r.message}</Text>
+                      {r.candidate?.score != null && <Text style={styles.small}>Adequação: {(r.candidate.score * 100).toFixed(0)}%{r.remove?.score != null ? ` · ${r.remove.name}: ${(r.remove.score * 100).toFixed(0)}%` : ''} · margem δ = {r.delta}</Text>}
+                      {!!r.unknown?.length && <Text style={styles.small}>Não reconhecidas no deck: {r.unknown.slice(0, 5).join(', ')}</Text>}
+                      {r.verdict === 'improves' && !modoDeck && <Link label={`Adicionar ao deck ${r.deck_name}`} onPress={() => addDeck(r.deck_id, r.deck_name)} />}
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+          </View>
 
           {modoDeck && <BotaoPrimario label={ocupado ? 'Adicionando…' : `Adicionar ao deck ${deckNome}`} disabled={ocupado} onPress={() => addDeck(deckId, deckNome)} />}
 
@@ -203,7 +268,7 @@ export default function ManaScan() {
               <ChipFiltro label="Foil" active={foil} onPress={() => setFoil(!foil)} />
             </View>
             <BotaoSecundario label="Adicionar à biblioteca" onPress={addColecao} />
-            {!modoDeck && <BotaoSecundario label="Adicionar a um deck" onPress={() => escolherDeck('adicionar')} />}
+            {!modoDeck && <BotaoSecundario label="Adicionar a um deck" onPress={escolherDeck} />}
             <BotaoSecundario label="Adicionar aos desejos" onPress={addDesejos} />
           </View>
 
@@ -218,9 +283,9 @@ export default function ManaScan() {
 
           {!!escolha && (
             <View style={styles.secao}>
-              <Text style={styles.label}>{escolha.acao === 'avaliar' ? 'Avaliar em qual deck Commander?' : 'Adicionar em qual deck?'}</Text>
+              <Text style={styles.label}>Adicionar em qual deck?</Text>
               {escolha.decks.map((d) => (
-                <Pressable key={d.id} accessibilityRole="button" onPress={() => (escolha.acao === 'avaliar' ? avaliar(d.id) : addDeck(d.id, d.nome))} style={({ hovered, pressed }) => [styles.deckOpcao, (hovered || pressed) && styles.deckOpcaoHover]}>
+                <Pressable key={d.id} accessibilityRole="button" onPress={() => addDeck(d.id, d.nome)} style={({ hovered, pressed }) => [styles.deckOpcao, (hovered || pressed) && styles.deckOpcaoHover]}>
                   <Text style={styles.deckNome}>{d.nome}</Text>
                   <Text style={styles.small}>{d.formatoNome} · {d.total} cartas{d.comandante ? ` · ${d.comandante.nome}` : ''}</Text>
                 </Pressable>
@@ -229,27 +294,12 @@ export default function ManaScan() {
             </View>
           )}
 
-          <View style={styles.evalBox}>
-            <BotaoPrimario label={evaluating ? 'Avaliando…' : 'Avaliar em um deck Commander'} disabled={evaluating} onPress={avaliarClique} />
-            {evaluation?.error ? <Text style={styles.warn}>{evaluation.error}</Text>
-              : evaluation && (
-                <View style={[styles.verdict, { borderColor: verdict?.color }]}>
-                  <Text style={[styles.eyebrow, { color: verdict?.color }]}>{verdict?.label} · {evaluation.deckName}</Text>
-                  <Text style={styles.verdictText}>{evaluation.message}</Text>
-                  {evaluation.candidate?.score != null && <Text style={styles.label}>Adequação de {evaluation.candidate.name}: {(evaluation.candidate.score * 100).toFixed(0)}%{evaluation.remove?.score != null ? ` · ${evaluation.remove.name}: ${(evaluation.remove.score * 100).toFixed(0)}%` : ''} · margem δ = {evaluation.delta}</Text>}
-                  {!!evaluation.weakest?.length && <Text style={styles.small}>Mais fracas do deck: {evaluation.weakest.map((w) => w.name).join(', ')}</Text>}
-                  {!!evaluation.unknown?.length && <Text style={styles.small}>Não reconhecidas no deck: {evaluation.unknown.slice(0, 5).join(', ')}</Text>}
-                </View>
-              )}
-          </View>
-
           <BotaoSecundario label="Escanear outra carta" onPress={() => setState('idle')} />
         </View>
       ) : (
         <View style={styles.scan}>
-          <View style={styles.frame}><Text style={styles.frameText}>Enquadre a carta</Text><Text style={styles.small}>{ocrAvailable ? 'OCR no navegador' : 'Foto + nome digitado'}</Text></View>
+          <Scanner ativa={focada && state === 'idle'} onFoto={identify} />
           <View style={styles.actions}>
-            <BotaoPrimario label="Capturar com a câmera" onPress={openCamera} />
             <BotaoSecundario label="Enviar foto da galeria" onPress={pickImage} />
             <BotaoSecundario label="Digitar o nome da carta" onPress={() => { setError(''); setState('manual'); }} />
             {!modoDeck && <BotaoSecundario label="Meus decks" onPress={() => router.push({ pathname: '/(tabs)/biblioteca', params: { aba: 'decks' } })} />}
@@ -260,8 +310,51 @@ export default function ManaScan() {
   );
 }
 
+// Câmera ao vivo dentro do app (expo-camera): enquadra a carta e tira a foto sem sair do ManaScan.
+function Scanner({ ativa, onFoto }) {
+  const [permissao, pedirPermissao] = useCameraPermissions();
+  const camera = useRef(null);
+  const [pronta, setPronta] = useState(false);
+  const [capturando, setCapturando] = useState(false);
+
+  const capturar = async () => {
+    if (!camera.current || capturando) return;
+    setCapturando(true);
+    try {
+      const foto = await camera.current.takePictureAsync({ quality: 0.6, base64: true, shutterSound: false });
+      onFoto(foto);
+    } catch (e) {
+      Alert.alert?.('Não foi possível tirar a foto', e.message);
+    } finally { setCapturando(false); }
+  };
+
+  if (!permissao) return <View style={styles.frame}><ActivityIndicator color={theme.colors.accent} /></View>;
+  if (!permissao.granted) {
+    return (
+      <View style={[styles.frame, styles.frameVazio]}>
+        <Text style={styles.frameText}>O ManaScan usa a câmera para reconhecer a carta.</Text>
+        {permissao.canAskAgain
+          ? <BotaoPrimario label="Permitir câmera" onPress={pedirPermissao} />
+          : <Text style={styles.small}>Acesso negado. Libere a câmera nas configurações do aparelho, ou envie uma foto da galeria.</Text>}
+      </View>
+    );
+  }
+  return (
+    <View style={{ width: '100%', maxWidth: 360, gap: theme.spacing.md }}>
+      <View style={[styles.frame, styles.frameCamera]}>
+        {ativa && <CameraView ref={camera} style={StyleSheet.absoluteFill} facing="back" onCameraReady={() => setPronta(true)} />}
+        <View pointerEvents="none" style={styles.mira}>
+          <View style={styles.miraNome} />
+          <Text style={styles.miraTexto}>Enquadre a carta · nome no topo</Text>
+        </View>
+      </View>
+      <BotaoPrimario label={capturando ? 'Capturando…' : 'Capturar carta'} disabled={!pronta || capturando || !ativa} onPress={capturar} />
+    </View>
+  );
+}
+
 function Link({ label, onPress }) {
   return <Pressable accessibilityRole="button" onPress={onPress} style={styles.link}><Text style={styles.linkTexto}>{label}</Text></Pressable>;
 }
 
-const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 960, width: '100%', alignSelf: 'center', padding: theme.spacing.lg }, panel: { gap: theme.spacing.md, width: '100%', maxWidth: 540, alignSelf: 'center', padding: theme.spacing.xl, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, faixa: { gap: theme.spacing.xs, width: '100%', maxWidth: 540, alignSelf: 'center', padding: theme.spacing.md, marginBottom: theme.spacing.md, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.accent }, faixaTexto: { color: theme.colors.text }, loading: { gap: theme.spacing.lg, width: '100%', maxWidth: 540, alignSelf: 'center' }, step: { color: theme.colors.accent, textAlign: 'center' }, scan: { alignItems: 'center' }, frame: { width: '100%', maxWidth: 360, aspectRatio: 5 / 7, alignItems: 'center', justifyContent: 'center', gap: theme.spacing.sm, borderRadius: theme.radius.lg, borderWidth: 2, borderColor: theme.colors.accent, backgroundColor: '#10283a' }, frameText: { color: theme.colors.textMuted }, actions: { width: '100%', maxWidth: 540, gap: theme.spacing.sm, marginTop: theme.spacing.lg }, secao: { gap: theme.spacing.sm, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border }, linha: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }, eyebrow: { color: theme.colors.accent, fontSize: theme.typography.small, fontWeight: theme.typography.weight.bold }, title: { color: theme.colors.text, fontSize: theme.typography.h2, fontWeight: theme.typography.weight.bold }, label: { color: theme.colors.textMuted }, small: { color: theme.colors.textMuted, fontSize: theme.typography.small }, ok: { color: theme.colors.greenEnd }, warn: { color: theme.colors.warning }, input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background, paddingHorizontal: theme.spacing.md }, cardImage: { width: '100%', height: 340, borderRadius: theme.radius.md }, deckOpcao: { padding: theme.spacing.md, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background }, deckOpcaoHover: { backgroundColor: theme.colors.surfaceRaised }, deckNome: { color: theme.colors.text, fontWeight: theme.typography.weight.bold }, evalBox: { gap: theme.spacing.sm, marginTop: theme.spacing.sm }, verdict: { gap: theme.spacing.xs, padding: theme.spacing.md, borderWidth: 2, borderRadius: theme.radius.md, backgroundColor: theme.colors.background }, verdictText: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, link: { minHeight: 36, justifyContent: 'center' }, linkTexto: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold } });
+const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 960, width: '100%', alignSelf: 'center', padding: theme.spacing.lg }, panel: { gap: theme.spacing.md, width: '100%', maxWidth: 540, alignSelf: 'center', padding: theme.spacing.xl, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, faixa: { gap: theme.spacing.xs, width: '100%', maxWidth: 540, alignSelf: 'center', padding: theme.spacing.md, marginBottom: theme.spacing.md, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.accent }, faixaTexto: { color: theme.colors.text }, loading: { gap: theme.spacing.lg, width: '100%', maxWidth: 540, alignSelf: 'center' }, step: { color: theme.colors.accent, textAlign: 'center' }, scan: { alignItems: 'center' }, frame: { width: '100%', maxWidth: 360, aspectRatio: 5 / 7, alignItems: 'center', justifyContent: 'center', gap: theme.spacing.sm, borderRadius: theme.radius.lg, borderWidth: 2, borderColor: theme.colors.accent, backgroundColor: '#10283a' }, frameText: { color: theme.colors.textMuted, textAlign: 'center' }, frameVazio: { padding: theme.spacing.lg }, frameCamera: { overflow: 'hidden', backgroundColor: '#000' }, mira: { ...StyleSheet.absoluteFillObject, margin: theme.spacing.md, borderWidth: 2, borderColor: 'rgba(255,255,255,0.85)', borderRadius: theme.radius.md, justifyContent: 'space-between', alignItems: 'center', padding: theme.spacing.sm }, miraNome: { width: '100%', height: '12%', borderWidth: 1, borderStyle: 'dashed', borderColor: theme.colors.accent, borderRadius: theme.radius.sm }, miraTexto: { color: '#fff', fontSize: theme.typography.small, backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: theme.spacing.sm, borderRadius: theme.radius.sm }, actions: { width: '100%', maxWidth: 540, gap: theme.spacing.sm, marginTop: theme.spacing.lg }, secao: { gap: theme.spacing.sm, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border }, linha: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }, eyebrow: { color: theme.colors.accent, fontSize: theme.typography.small, fontWeight: theme.typography.weight.bold }, title: { color: theme.colors.text, fontSize: theme.typography.h2, fontWeight: theme.typography.weight.bold }, label: { color: theme.colors.textMuted }, small: { color: theme.colors.textMuted, fontSize: theme.typography.small }, ok: { color: theme.colors.greenEnd }, warn: { color: theme.colors.warning }, input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background, paddingHorizontal: theme.spacing.md }, cardImage: { width: '100%', height: 340, borderRadius: theme.radius.md }, deckOpcao: { padding: theme.spacing.md, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background }, deckOpcaoHover: { backgroundColor: theme.colors.surfaceRaised }, deckNome: { color: theme.colors.text, fontWeight: theme.typography.weight.bold }, evalBox: { gap: theme.spacing.sm, marginTop: theme.spacing.sm }, verdict: { gap: theme.spacing.xs, padding: theme.spacing.md, borderWidth: 2, borderRadius: theme.radius.md, backgroundColor: theme.colors.background }, verdictText: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, link: { minHeight: 36, justifyContent: 'center' }, linkTexto: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold } });
