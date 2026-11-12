@@ -11,7 +11,7 @@ import Skeleton from '../../src/components/Skeleton';
 import SeloCondicao from '../../src/components/SeloCondicao';
 import { ocrAvailable, ocrCandidateLines } from '../../src/services/ocr';
 import { fuzzyCard } from '../../src/services/scryfall';
-import { evaluateCard, matchCardName, scanWithLlm } from '../../src/services/mlApi';
+import { evaluateCard, matchCardName } from '../../src/services/mlApi';
 import { loadDeck } from '../../src/services/decks';
 import { theme } from '../../src/theme';
 
@@ -31,7 +31,7 @@ export default function ManaScan() {
   const [evaluation, setEvaluation] = useState(null);
   const [evaluating, setEvaluating] = useState(false);
 
-  // Identificação: OCR (web) ou LLM multimodal (mobile) -> fuzzy matching no Scryfall
+  // Identificação: OCR no navegador (web) -> fuzzy matching no Scryfall. No celular: nome digitado.
   const identify = async (asset) => {
     setState('loading'); setEvaluation(null); setError('');
     try {
@@ -39,16 +39,13 @@ export default function ManaScan() {
       if (ocrAvailable) {
         setStep('Lendo o texto da carta (OCR)…');
         candidates = await ocrCandidateLines(asset.uri);
-      } else if (asset.base64) {
-        setStep('Identificando a carta com IA…');
-        try { const r = await scanWithLlm(asset.base64, asset.mimeType || 'image/jpeg'); candidates = [r.raw_text, ...r.matches.map((m) => m.name)]; } catch { candidates = []; }
       }
       setStep('Buscando no Scryfall…');
       for (const c of candidates) {
         const card = await fuzzyCard(c).catch(() => null);
         if (card) { showCard(card); return; }
       }
-      setError('Não conseguimos ler o nome da carta. Digite o nome abaixo.'); setState('manual');
+      setError(ocrAvailable ? 'Não conseguimos ler o nome da carta. Digite o nome abaixo.' : 'Digite o nome da carta fotografada.'); setState('manual');
     } catch (e) { setError(e.message); setState('manual'); }
   };
   const showCard = (card) => {
@@ -69,14 +66,14 @@ export default function ManaScan() {
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) { setError('Libere o acesso à biblioteca de fotos nas configurações do dispositivo.'); setState('error'); return; }
-    const photo = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7, base64: !ocrAvailable });
+    const photo = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7, });
     if (!photo.canceled) identify(photo.assets[0]);
   };
   const openCamera = async () => {
     if (Platform.OS === 'web') { setError('A câmera não está disponível nesta sessão web. Use o arquivo da galeria.'); setState('permission'); return; }
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) { setError('O acesso à câmera foi negado. Libere a câmera nas configurações do dispositivo ou digite o nome da carta.'); setState('permission'); return; }
-    const photo = await ImagePicker.launchCameraAsync({ quality: 0.7, base64: true });
+    const photo = await ImagePicker.launchCameraAsync({ quality: 0.7 });
     if (!photo.canceled) identify(photo.assets[0]);
   };
   const update = (field, value) => setResult((current) => ({ ...current, [field]: value }));
@@ -114,7 +111,7 @@ export default function ManaScan() {
             </View>}
         </View>
         <View style={styles.actions}><BotaoSecundario label="Anunciar" onPress={() => setState('idle')} /><BotaoSecundario label="Adicionar à biblioteca" onPress={() => setState('idle')} /><BotaoSecundario label="Escanear outra" onPress={() => setState('idle')} /></View></View>
-    : <View style={styles.scan}><View style={styles.frame}><Text style={styles.frameText}>Enquadre a carta</Text><Text style={styles.small}>{ocrAvailable ? 'OCR no navegador' : 'Identificação por IA'}</Text></View>
+    : <View style={styles.scan}><View style={styles.frame}><Text style={styles.frameText}>Enquadre a carta</Text><Text style={styles.small}>{ocrAvailable ? 'OCR no navegador' : 'Foto + nome digitado'}</Text></View>
         <View style={styles.actions}><BotaoPrimario label="Capturar com a câmera" onPress={openCamera} /><BotaoSecundario label="Enviar foto da galeria" onPress={pickImage} /><BotaoSecundario label="Digitar o nome da carta" onPress={() => { setError(''); setState('manual'); }} /><BotaoSecundario label="Meu deck" onPress={() => router.push('/deck')} /></View></View>}
   </ScrollView>;
 }
