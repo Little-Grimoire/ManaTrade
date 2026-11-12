@@ -1,2 +1,76 @@
-import Head from 'expo-router/head';import { useState } from 'react';import { Pressable,ScrollView,StyleSheet,Switch,Text,TextInput,View } from 'react-native';import Cabecalho from '../src/components/Cabecalho';import ChipFiltro from '../src/components/ChipFiltro';import BotaoPrimario from '../src/components/BotaoPrimario';import ModalConfirmacao from '../src/components/ModalConfirmacao';import { useAuth } from '../src/contexts/AuthContext';import { theme } from '../src/theme';
-export default function Configuracoes(){const {user}=useAuth();const [profile,setProfile]=useState({name:user?.name||'Jonathan Silva',email:user?.email||''});const [games,setGames]=useState(['Magic','Pokémon']);const [notifications,setNotifications]=useState(true);const [privateProfile,setPrivateProfile]=useState(false);const [saved,setSaved]=useState(false);const toggle=(value)=>setGames((current)=>current.includes(value)?current.filter((item)=>item!==value):[...current,value]);return <ScrollView contentContainerStyle={styles.page}><Head><title>Configurações | ManaTrade</title></Head><Cabecalho title="Configurações" back/><View style={styles.section}><Text style={styles.title}>Perfil</Text>{[['name','Nome'],['email','E-mail']].map(([key,label])=><View key={key}><Text style={styles.label}>{label}</Text><TextInput value={profile[key]} onChangeText={(value)=>setProfile((current)=>({...current,[key]:value}))} style={styles.input}/></View>)}</View><View style={styles.section}><Text style={styles.title}>Jogos favoritos</Text><View style={styles.row}>{['Magic','Pokémon','Yu-Gi-Oh!','Lorcana'].map((item)=><ChipFiltro key={item} label={item} active={games.includes(item)} onPress={()=>toggle(item)} />)}</View></View><View style={styles.section}><Setting label="Notificações" value={notifications} onChange={setNotifications}/><Setting label="Perfil privado" value={privateProfile} onChange={setPrivateProfile}/></View><BotaoPrimario label={saved?'Alterações salvas':'Salvar alterações'} onPress={()=>setSaved(true)}/></ScrollView>}function Setting({label,value,onChange}){return <View style={styles.setting}><Text style={styles.settingText}>{label}</Text><Switch value={value} onValueChange={onChange} thumbColor={value?theme.colors.accent:theme.colors.textMuted} trackColor={{false:theme.colors.border,true:'#2f6f93'}} /></View>}const styles=StyleSheet.create({page:{flexGrow:1,maxWidth:760,width:'100%',alignSelf:'center',padding:theme.spacing.lg,gap:theme.spacing.lg},section:{gap:theme.spacing.md,padding:theme.spacing.lg,borderRadius:theme.radius.md,backgroundColor:theme.colors.surface,borderWidth:1,borderColor:theme.colors.border},title:{color:theme.colors.text,fontSize:theme.typography.h3,fontWeight:theme.typography.weight.bold},label:{color:theme.colors.textMuted,fontSize:theme.typography.small,marginBottom:theme.spacing.xs},input:{minHeight:48,color:theme.colors.text,borderWidth:1,borderColor:theme.colors.border,borderRadius:theme.radius.sm,backgroundColor:theme.colors.background,paddingHorizontal:theme.spacing.md},row:{flexDirection:'row',flexWrap:'wrap',gap:theme.spacing.sm},setting:{minHeight:44,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},settingText:{color:theme.colors.text,fontWeight:theme.typography.weight.medium}});
+import Head from 'expo-router/head';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Cabecalho from '../src/components/Cabecalho';
+import BotaoPrimario from '../src/components/BotaoPrimario';
+import { useAuth } from '../src/contexts/AuthContext';
+import { ROTULO_PERFIL } from '../src/services/auth';
+import { theme } from '../src/theme';
+
+export default function Configuracoes() {
+  const { user, updateUser, changePassword } = useAuth();
+  const [dados, setDados] = useState({ nome: user?.nome || '', email: user?.email || '' });
+  const [senhas, setSenhas] = useState({ atual: '', nova: '', confirmar: '' });
+  const [msgDados, setMsgDados] = useState(null);
+  const [msgSenha, setMsgSenha] = useState(null);
+  const [enviando, setEnviando] = useState(false);
+
+  const salvarDados = async () => {
+    setEnviando(true); setMsgDados(null);
+    try {
+      await updateUser({ nome: dados.nome.trim(), email: dados.email.trim() });
+      setMsgDados({ ok: true, texto: 'Dados atualizados.' });
+    } catch (e) {
+      setMsgDados({ ok: false, texto: e.message });
+    } finally { setEnviando(false); }
+  };
+
+  const salvarSenha = async () => {
+    if (senhas.nova.length < 6 || senhas.nova !== senhas.confirmar) {
+      setMsgSenha({ ok: false, texto: 'A nova senha deve ter pelo menos 6 caracteres e ser igual à confirmação.' }); return;
+    }
+    setEnviando(true); setMsgSenha(null);
+    try {
+      await changePassword(senhas.atual, senhas.nova);
+      setSenhas({ atual: '', nova: '', confirmar: '' });
+      setMsgSenha({ ok: true, texto: 'Senha alterada.' });
+    } catch (e) {
+      setMsgSenha({ ok: false, texto: e.message });
+    } finally { setEnviando(false); }
+  };
+
+  const campo = (estado, setEstado, key, label, props = {}) => (
+    <View key={key}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput value={estado[key]} onChangeText={(v) => setEstado((c) => ({ ...c, [key]: v }))} placeholderTextColor={theme.colors.textMuted} style={styles.input} {...props} />
+    </View>
+  );
+  const mensagem = (msg) => msg && <Text style={{ color: msg.ok ? theme.colors.greenEnd : theme.colors.danger }}>{msg.texto}</Text>;
+
+  return (
+    <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
+      <Head><title>Configurações | ManaTrade</title></Head>
+      <Cabecalho title="Configurações" back />
+
+      <View style={styles.section}>
+        <Text style={styles.title}>Conta</Text>
+        <Text style={styles.muted}>Perfil: {ROTULO_PERFIL[user?.perfil]} (definido no cadastro; só o administrador altera)</Text>
+        {campo(dados, setDados, 'nome', 'Nome', { autoCapitalize: 'words' })}
+        {campo(dados, setDados, 'email', 'E-mail', { autoCapitalize: 'none', keyboardType: 'email-address' })}
+        {mensagem(msgDados)}
+        <BotaoPrimario label="Salvar dados" onPress={salvarDados} disabled={enviando} />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.title}>Alterar senha</Text>
+        {campo(senhas, setSenhas, 'atual', 'Senha atual', { secureTextEntry: true })}
+        {campo(senhas, setSenhas, 'nova', 'Nova senha', { secureTextEntry: true })}
+        {campo(senhas, setSenhas, 'confirmar', 'Confirmar nova senha', { secureTextEntry: true })}
+        {mensagem(msgSenha)}
+        <BotaoPrimario label="Alterar senha" onPress={salvarSenha} disabled={enviando} />
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 760, width: '100%', alignSelf: 'center', padding: theme.spacing.lg, gap: theme.spacing.lg }, section: { gap: theme.spacing.md, padding: theme.spacing.lg, borderRadius: theme.radius.md, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, title: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, muted: { color: theme.colors.textMuted, fontSize: theme.typography.small }, label: { color: theme.colors.textMuted, fontSize: theme.typography.small, marginBottom: theme.spacing.xs }, input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background, paddingHorizontal: theme.spacing.md } });

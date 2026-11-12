@@ -8,7 +8,9 @@ export default function CardCapa({ item, onPress, compact = false }) {
       <View style={styles.body}>
         <Text numberOfLines={1} style={styles.name}>{item.name || item.title}</Text>
         {!!item.edition && <Text numberOfLines={1} style={styles.meta}>{item.edition}</Text>}
-        <Text style={styles.price}>R$ {Number(item.price).toFixed(2)}</Text>
+        {item.priceText !== undefined
+          ? !!item.priceText && <Text style={styles.price}>{item.priceText}</Text>
+          : <Text style={styles.price}>R$ {Number(item.price).toFixed(2)}</Text>}
       </View>
     </Pressable>
   );

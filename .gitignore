@@ -147,3 +147,6 @@ __pycache__/
 *.pyc
 ml/notebooks/manatrade_ml/
 .ipynb_checkpoints/
+
+# Backend (Web 2): banco SQLite de desenvolvimento
+backend/data/

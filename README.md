@@ -7,7 +7,7 @@ O projeto é desenvolvido em conjunto para três disciplinas da UTFPR-DV (Engenh
 | Disciplina | O que é avaliado | Onde está |
 |---|---|---|
 | Programação para Dispositivos Móveis | aplicativo Expo funcional | `app/`, `src/` |
-| Programação para Web 2 | sistema web publicado, modelagem com relacionamentos e API REST | `backend/` *(a definir)* |
+| Programação para Web 2 | sistema web publicado, modelagem com relacionamentos e API REST | `backend/` |
 | Fundamentos de Sistemas Inteligentes (TP) | classificador carta × deck (ML) | `ml/`, `backend-ml/` |
 
 O classificador do TP é a **funcionalidade de IA do aplicativo** (combinado com o professor).
@@ -27,7 +27,7 @@ app/            telas (Expo Router)       ── Mobile
 src/            componentes, serviços (Scryfall, OCR, API de ML, deck local)
 ml/             notebook do TP, dados, código de features, modelo exportado ── Sistemas Inteligentes
 backend-ml/     API Python (FastAPI) que serve o modelo
-backend/        (a criar) sistema web + API REST ── Web 2
+backend/        Node + Express + Sequelize: banco (pronto), sistema web e API REST (em andamento) ── Web 2
 docs/           decisões de arquitetura e documentos das disciplinas
 ```
 
@@ -38,6 +38,12 @@ docs/           decisões de arquitetura e documentos das disciplinas
 - Expo Go no celular (opcional)
 
 ## Como executar
+
+Backend (Web 2: banco, autenticação e API), porta 3001:
+```bash
+cd backend && npm install && npm run db:seed && npm run dev
+```
+Contas de demonstração: `jogador@manatrade.dev`, `loja@manatrade.dev`, `admin@manatrade.dev`, senha `manatrade123`.
 
 API de ML:
 ```bash
@@ -55,7 +61,7 @@ npm install
 npx expo start
 ```
 
-Copie `.env.example` para `.env`. No celular, `EXPO_PUBLIC_ML_API_URL` precisa apontar para o IP da máquina na rede local (ex.: `http://192.168.0.10:8000`), não para `localhost`.
+Copie `.env.example` para `.env`. No celular, `EXPO_PUBLIC_API_URL` e `EXPO_PUBLIC_ML_API_URL` precisam apontar para o IP da máquina na rede local (ex.: `http://192.168.0.10:8000`), não para `localhost`.
 
 ## Variáveis de ambiente
 
@@ -69,6 +75,7 @@ Nenhuma chave de API é necessária; o Scryfall é público. O arquivo `.env` n�
 ## Documentação
 
 - `ml/README.md`: notebook do TP, dados e reprodução
+- `backend/README.md`: banco de dados, seed e testes do backend Web 2
 - `backend-ml/README.md`: rotas da API de ML
 - `docs/definicao_tema.md`, `docs/prd.md`, `docs/modelagem_dados.md`, `docs/decisoes_arquitetura.md`
 

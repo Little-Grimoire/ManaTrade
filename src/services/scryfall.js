@@ -12,6 +12,6 @@ export async function fuzzyCard(name) {
   if (!res.ok) throw new Error(`Scryfall respondeu ${res.status}.`);
   const c = await res.json();
   const img = c.image_uris || c.card_faces?.[0]?.image_uris || {};
-  return { name: c.name, edition: c.set_name, image: img.normal || img.small, typeLine: c.type_line,
+  return { id: c.id, name: c.name, edition: c.set_name, image: img.normal || img.small, typeLine: c.type_line,
     colorIdentity: c.color_identity, priceUsd: c.prices?.usd };
 }

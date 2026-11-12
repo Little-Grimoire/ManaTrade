@@ -2,12 +2,12 @@
 
 Formato: contexto, alternativas, escolha, justificativa, consequências. Itens marcados **(proposta)** ainda não foram confirmados pela equipe.
 
-## DA01 — Modelagem relacional com PostgreSQL (proposta)
+## DA01 — Modelagem relacional com PostgreSQL
 **Contexto:** usuários, lojas, coleções, decks e consignações têm relações fortes (N:N e 1:N, exigidas em Web 2) e consignações precisam de integridade.
 **Alternativas:** (a) PostgreSQL; (b) MongoDB; (c) Firebase Firestore; (d) persistência poliglota (Postgres + Mongo, decisão antiga).
 **Escolha:** (a) PostgreSQL com ORM Sequelize. Modelo em `modelagem_dados.md`.
 **Justificativa:** um banco só, relacional, atende integridade e relacionamentos; o cache de cartas do Scryfall cabe numa tabela simples (`carta`). Dois bancos traziam complexidade sem ganho.
-**Consequências:** precisa de hospedagem de Postgres no deploy; migrações versionadas.
+**Consequências:** precisa de hospedagem de Postgres no deploy. Em desenvolvimento e testes o mesmo código roda em SQLite (sem instalar nada). As tabelas são criadas com `sync()`; migrações só se o schema mudar com dados em produção.
 
 ## DA02 — Backend Node.js + Express em MVC, servindo o site e a API REST (proposta)
 **Contexto:** Web 2 exige Node.js, MVC com front-end, controle de acesso por middleware e uma API REST com token.
