@@ -1,0 +1,31 @@
+<%- include('partials/topo') %>
+<h1>Olá, <%= usuario.nome %></h1>
+
+<% if (usuario.perfil === 'usuario') { %>
+  <div class="grade">
+    <a class="cartao" href="/colecao"><div class="numero"><%= resumo.cartasColecao %></div>cartas na coleção</a>
+    <a class="cartao" href="/decks"><div class="numero"><%= resumo.decks %></div>decks</a>
+    <a class="cartao" href="/consignacoes"><div class="numero"><%= resumo.consignacoesAtivas %></div>consignações ativas</a>
+    <a class="cartao" href="/notificacoes"><div class="numero"><%= resumo.notificacoesNaoLidas %></div>notificações não lidas</a>
+  </div>
+<% } else if (usuario.perfil === 'loja') { %>
+  <% if (!usuario.loja) { %>
+    <p class="aviso alerta">Você ainda não cadastrou sua loja. <a href="/minha-loja">Cadastrar agora</a>.</p>
+  <% } else if (!usuario.loja.aprovada) { %>
+    <p class="aviso alerta">A loja <strong><%= usuario.loja.nome %></strong> aguarda aprovação do administrador. Até lá ela não aparece para os jogadores e o acervo fica bloqueado.</p>
+  <% } %>
+  <div class="grade">
+    <a class="cartao" href="/acervo"><div class="numero"><%= resumo.itensAcervo %></div>cartas no acervo</a>
+    <a class="cartao" href="/consignacoes?status=pendente"><div class="numero"><%= resumo.consignacoesPendentes %></div>consignações aguardando resposta</a>
+    <a class="cartao" href="/consignacoes?status=a_venda"><div class="numero"><%= resumo.consignacoesAVenda %></div>consignações à venda</a>
+    <a class="cartao" href="/notificacoes"><div class="numero"><%= resumo.notificacoesNaoLidas %></div>notificações não lidas</a>
+  </div>
+<% } else { %>
+  <div class="grade">
+    <a class="cartao" href="/lojas?aprovada=false"><div class="numero"><%= resumo.lojasPendentes %></div>lojas aguardando aprovação</a>
+    <a class="cartao" href="/chamados"><div class="numero"><%= resumo.chamadosAbertos %></div>chamados em aberto</a>
+    <a class="cartao" href="/usuarios?ativo=false"><div class="numero"><%= resumo.usuariosBloqueados %></div>usuários bloqueados</a>
+    <a class="cartao" href="/notificacoes"><div class="numero"><%= resumo.notificacoesNaoLidas %></div>notificações não lidas</a>
+  </div>
+<% } %>
+<%- include('partials/fim') %>

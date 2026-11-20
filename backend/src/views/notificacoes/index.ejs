@@ -1,0 +1,54 @@
+<%- include('../partials/topo') %>
+<div class="linha entre">
+  <h1>Notificações</h1>
+  <form method="post" action="/notificacoes/lidas">
+    <input type="hidden" name="_method" value="PATCH">
+    <button class="secundario">Marcar todas como lidas</button>
+  </form>
+</div>
+
+<% if (usuario.perfil === 'admin') { %>
+  <section class="cartao">
+    <h2>Enviar aviso</h2>
+    <form method="post" action="/notificacoes" class="campos">
+      <label>Para
+        <select name="usuario_id" required>
+          <% for (const u of usuarios) { %><option value="<%= u.id %>"><%= u.nome %> (<%= PERFIS[u.perfil] %>)</option><% } %>
+        </select>
+      </label>
+      <label>Título <input name="titulo" required maxlength="150"></label>
+      <label class="largo">Mensagem <input name="mensagem"></label>
+      <button>Enviar</button>
+    </form>
+  </section>
+<% } %>
+
+<% if (!notificacoes.length) { %>
+  <p class="suave">Nenhuma notificação.</p>
+<% } else { %>
+  <div class="tabela"><table>
+    <tbody>
+      <% for (const n of notificacoes) { %>
+        <%
+          // Link para o registro de origem, quando houver.
+          const link = n.referencia_id && n.tipo === 'consignacao' ? `/consignacoes/${n.referencia_id}`
+            : n.referencia_id && n.tipo === 'chamado' ? `/chamados/${n.referencia_id}` : null;
+        %>
+        <tr class="<%= n.lida ? '' : 'nao-lida' %>">
+          <td><span class="selo"><%= n.tipo %></span></td>
+          <td><%- link ? `<a href="${link}">` : '' %><%= n.titulo %><%- link ? '</a>' : '' %><br><small class="suave"><%= n.mensagem || '' %></small></td>
+          <td class="suave"><%= data(n.created_at) %></td>
+          <td class="acoes">
+            <form method="post" action="/notificacoes/<%= n.id %>" class="inline">
+              <input type="hidden" name="_method" value="PATCH">
+              <input type="hidden" name="lida" value="<%= n.lida ? 'false' : 'true' %>">
+              <button class="secundario"><%= n.lida ? 'Marcar não lida' : 'Marcar lida' %></button>
+            </form>
+            <%- include('../partials/excluir', { acao: `/notificacoes/${n.id}` }) %>
+          </td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table></div>
+<% } %>
+<%- include('../partials/fim') %>

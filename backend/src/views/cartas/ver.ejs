@@ -1,0 +1,45 @@
+<%- include('../partials/topo') %>
+<p><a href="/cartas">← Catálogo</a></p>
+<h1><%= carta.nome %></h1>
+
+<section class="cartao grade">
+  <div><% if (carta.imagem_url) { %><img class="carta-grande" src="<%= carta.imagem_url %>" alt="<%= carta.nome %>"><% } %></div>
+  <div>
+    <p><strong>Tipo:</strong> <%= carta.tipo || '—' %></p>
+    <p><strong>Custo:</strong> <%= carta.custo_mana || '—' %> (valor de mana <%= carta.cmc ?? '—' %>)</p>
+    <p><strong>Identidade de cor:</strong> <%= carta.identidade_cor || 'incolor' %></p>
+    <p><strong>Edição:</strong> <%= carta.edicao || '—' %> <%= carta.codigo_edicao ? `(${carta.codigo_edicao.toUpperCase()} #${carta.numero_colecionador})` : '' %></p>
+    <p><strong>Raridade:</strong> <%= carta.raridade || '—' %></p>
+    <p><strong>Preço de referência:</strong> <%= moeda(carta.preco_usd, 'US$') %></p>
+    <% if (carta.legalidades) { %>
+      <p><strong>Legal em:</strong>
+        <%= Object.entries(carta.legalidades).filter(([, s]) => s === 'legal').map(([f]) => f).filter((f) => ['commander', 'pauper', 'standard', 'pioneer', 'modern', 'legacy', 'vintage'].includes(f)).join(', ') || '—' %>
+      </p>
+    <% } %>
+    <p class="suave">Scryfall ID: <%= carta.scryfall_id %></p>
+  </div>
+</section>
+
+<% if (usuario.perfil === 'admin') { %>
+  <section class="cartao">
+    <h2>Corrigir dados</h2>
+    <form method="post" action="/cartas/<%= carta.id %>" class="campos">
+      <input type="hidden" name="_method" value="PATCH">
+      <label>Nome <input name="nome" value="<%= carta.nome %>" required></label>
+      <label>Edição <input name="edicao" value="<%= carta.edicao || '' %>"></label>
+      <label>Tipo <input name="tipo" value="<%= carta.tipo || '' %>"></label>
+      <label>Custo de mana <input name="custo_mana" value="<%= carta.custo_mana || '' %>"></label>
+      <label>Valor de mana <input type="number" step="0.5" name="cmc" value="<%= carta.cmc ?? '' %>"></label>
+      <label>Identidade de cor (WUBRG) <input name="identidade_cor" value="<%= carta.identidade_cor %>"></label>
+      <label>Raridade <input name="raridade" value="<%= carta.raridade || '' %>"></label>
+      <label>Preço ref. (US$) <input type="number" step="0.01" name="preco_usd" value="<%= carta.preco_usd ?? '' %>"></label>
+      <label class="largo">URL da imagem <input name="imagem_url" value="<%= carta.imagem_url || '' %>"></label>
+      <button>Salvar</button>
+    </form>
+    <div class="linha" style="margin-top:1rem">
+      <form method="post" action="/cartas/<%= carta.id %>/sincronizar" class="inline"><button class="secundario">Atualizar com o Scryfall</button></form>
+      <%- include('../partials/excluir', { acao: `/cartas/${carta.id}`, texto: 'Excluir do catálogo', pergunta: 'Excluir a carta? Só é possível se ninguém a estiver usando.' }) %>
+    </div>
+  </section>
+<% } %>
+<%- include('../partials/fim') %>

@@ -1,0 +1,5 @@
+<%# Botão de exclusão: POST com _method=DELETE e confirmação. Parâmetros: acao, texto?, pergunta? %>
+<form method="post" action="<%= acao %>" class="inline" onsubmit="return confirm('<%= locals.pergunta || 'Confirma a exclusão?' %>')">
+  <input type="hidden" name="_method" value="DELETE">
+  <button class="perigo"><%= locals.texto || 'Excluir' %></button>
+</form>

@@ -1,0 +1,63 @@
+<%- include('../partials/topo') %>
+<p><a href="/consignacoes">← Consignações</a></p>
+<div class="linha entre">
+  <h1>Consignação #<%= c.id %></h1>
+  <span class="selo"><%= STATUS_CONSIGNACAO[c.status] %></span>
+</div>
+
+<section class="cartao grade">
+  <div>
+    <% if (c.carta.imagem_url) { %><img class="carta-grande" src="<%= c.carta.imagem_url %>" alt="<%= c.carta.nome %>"><% } %>
+  </div>
+  <div>
+    <p><strong><%= c.carta.nome %></strong> · <%= c.condicao %><%= c.foil ? ' · foil' : '' %> · <%= c.quantidade %>×</p>
+    <p>Jogador: <%= c.usuario.nome %> · Loja: <a href="/lojas/<%= c.loja.id %>"><%= c.loja.nome %></a></p>
+    <p>Preço pedido: <strong><%= moeda(c.preco_pedido) %></strong><% if (c.preco_venda) { %> · Preço de venda: <%= moeda(c.preco_venda) %><% } %></p>
+    <% if (c.observacao) { %><p>Mensagem do jogador: <em><%= c.observacao %></em></p><% } %>
+    <% if (c.resposta_loja) { %><p>Resposta da loja: <em><%= c.resposta_loja %></em></p><% } %>
+    <p class="suave">Enviada em <%= data(c.created_at) %> · Respondida em <%= data(c.respondida_em) %> · Encerrada em <%= data(c.encerrada_em) %></p>
+  </div>
+</section>
+
+<%# Jogador: enquanto pendente, pode editar a proposta ou cancelar. %>
+<% if (souDono && c.status === 'pendente') { %>
+  <section class="cartao">
+    <h2>Editar proposta</h2>
+    <form method="post" action="/consignacoes/<%= c.id %>" class="campos">
+      <input type="hidden" name="_method" value="PATCH">
+      <label>Quantidade <input type="number" name="quantidade" value="<%= c.quantidade %>" min="1"></label>
+      <label>Preço pedido (R$) <input type="number" name="preco_pedido" step="0.01" min="0.01" value="<%= c.preco_pedido %>"></label>
+      <label class="largo">Mensagem <input name="observacao" value="<%= c.observacao || '' %>"></label>
+      <button>Salvar</button>
+    </form>
+    <form method="post" action="/consignacoes/<%= c.id %>" class="inline" onsubmit="return confirm('Cancelar a consignação?')">
+      <input type="hidden" name="_method" value="PATCH">
+      <input type="hidden" name="status" value="cancelada">
+      <button class="perigo">Cancelar consignação</button>
+    </form>
+  </section>
+<% } %>
+
+<%# Loja: escolhe o próximo status permitido e pode responder. %>
+<% if (souLoja && proximos.length) { %>
+  <section class="cartao">
+    <h2>Responder</h2>
+    <form method="post" action="/consignacoes/<%= c.id %>" class="campos">
+      <input type="hidden" name="_method" value="PATCH">
+      <label>Novo status
+        <select name="status">
+          <% for (const s of proximos) { %><option value="<%= s %>"><%= STATUS_CONSIGNACAO[s] %></option><% } %>
+        </select>
+      </label>
+      <label>Preço de venda (R$) <input type="number" name="preco_venda" step="0.01" min="0" value="<%= c.preco_venda ?? '' %>" placeholder="padrão: preço pedido"></label>
+      <label class="largo">Mensagem ao jogador <input name="resposta_loja" value="<%= c.resposta_loja || '' %>"></label>
+      <button>Atualizar</button>
+    </form>
+    <p class="suave">"À venda" coloca a carta no acervo da loja; "Vendida" tira do acervo e da coleção do jogador.</p>
+  </section>
+<% } %>
+
+<% if (usuario.perfil === 'admin' || (souDono && (c.status === 'pendente' || c.encerrada))) { %>
+  <%- include('../partials/excluir', { acao: `/consignacoes/${c.id}`, texto: 'Excluir consignação' }) %>
+<% } %>
+<%- include('../partials/fim') %>

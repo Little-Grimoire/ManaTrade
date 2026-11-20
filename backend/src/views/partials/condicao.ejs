@@ -1,0 +1,6 @@
+<%# Select de condição da carta. Parâmetros: valor? %>
+<select name="condicao">
+  <% for (const c of CONDICOES) { %>
+    <option value="<%= c %>" <%= (locals.valor || 'NM') === c ? 'selected' : '' %>><%= c %></option>
+  <% } %>
+</select>

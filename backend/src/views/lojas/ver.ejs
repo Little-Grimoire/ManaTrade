@@ -1,0 +1,63 @@
+<%- include('../partials/topo') %>
+<p><a href="/lojas">← Lojas</a></p>
+<div class="linha entre">
+  <h1><%= loja.nome %></h1>
+  <span class="selo <%= loja.aprovada ? 'ok' : 'alerta' %>"><%= loja.aprovada ? 'Aprovada' : 'Aguardando aprovação' %></span>
+</div>
+
+<section class="cartao">
+  <p><%= loja.endereco %><%= loja.cidade ? ` · ${loja.cidade}` : '' %><%= loja.uf ? `/${loja.uf}` : '' %></p>
+  <p class="suave"><%= loja.horario || 'Horário não informado' %> · <%= loja.telefone || 'sem telefone' %> · <%= loja.aceita_consignacao ? 'Aceita consignação' : 'Não aceita consignação' %></p>
+  <% if (loja.descricao) { %><p><%= loja.descricao %></p><% } %>
+</section>
+
+<% if (colecao.length) { %>
+  <section class="cartao">
+    <h2>Consignar uma carta da minha coleção</h2>
+    <form method="post" action="/consignacoes" class="campos">
+      <input type="hidden" name="loja_id" value="<%= loja.id %>">
+      <label>Item da coleção
+        <select name="item_colecao_id" required>
+          <% for (const i of colecao) { %><option value="<%= i.id %>"><%= i.carta.nome %> · <%= i.condicao %><%= i.foil ? ' · foil' : '' %> (<%= i.quantidade %>×)</option><% } %>
+        </select>
+      </label>
+      <label>Quantidade <input type="number" name="quantidade" value="1" min="1"></label>
+      <label>Preço pedido (R$) <input type="number" name="preco_pedido" step="0.01" min="0.01" required></label>
+      <label class="largo">Mensagem para a loja <input name="observacao"></label>
+      <button>Enviar proposta</button>
+    </form>
+  </section>
+<% } %>
+
+<h2>Acervo à venda</h2>
+<% if (!acervo.length) { %>
+  <p class="suave">Nenhuma carta no acervo.</p>
+<% } else { %>
+  <div class="tabela"><table>
+    <thead><tr><th>Carta</th><th>Condição</th><th>Foil</th><th>Qtd.</th><th>Preço</th></tr></thead>
+    <tbody>
+      <% for (const i of acervo) { %>
+        <tr>
+          <td><a href="/cartas/<%= i.carta.id %>"><%= i.carta.nome %></a><% if (i.consignacao_id) { %> <small class="selo">consignada</small><% } %></td>
+          <td><%= i.condicao %></td><td><%= i.foil ? 'Sim' : 'Não' %></td><td><%= i.quantidade %></td><td><%= moeda(i.preco) %></td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table></div>
+<% } %>
+
+<% if (podeEditar) { %>
+  <section class="cartao" style="margin-top:1rem">
+    <h2>Editar dados da loja</h2>
+    <form method="post" action="/lojas/<%= loja.id %>" class="campos">
+      <input type="hidden" name="_method" value="PATCH">
+      <%- include('_campos', { loja }) %>
+      <% if (usuario.perfil === 'admin') { %>
+        <label class="check"><input type="checkbox" name="aprovada" <%= loja.aprovada ? 'checked' : '' %>> Aprovada</label>
+      <% } %>
+      <button>Salvar</button>
+    </form>
+    <div style="margin-top:1rem"><%- include('../partials/excluir', { acao: `/lojas/${loja.id}`, texto: 'Excluir loja', pergunta: 'Excluir a loja, o acervo e as consignações dela?' }) %></div>
+  </section>
+<% } %>
+<%- include('../partials/fim') %>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= titulo %> · ManaTrade</title>
+  <link rel="stylesheet" href="/estilo.css">
+</head>
+<body>
+<header class="topo">
+  <a class="marca" href="/">ManaTrade</a>
+  <% if (locals.usuario) { %>
+    <%
+      // Menu muda conforme o perfil (as rotas também conferem o perfil no servidor).
+      const menus = {
+        usuario: [['/colecao', 'Coleção'], ['/decks', 'Decks'], ['/desejos', 'Desejos'], ['/lojas', 'Lojas'], ['/consignacoes', 'Consignações']],
+        loja: [['/minha-loja', 'Minha loja'], ['/acervo', 'Acervo'], ['/consignacoes', 'Consignações recebidas']],
+        admin: [['/usuarios', 'Usuários'], ['/lojas', 'Lojas'], ['/cartas', 'Cartas'], ['/consignacoes', 'Consignações']],
+      };
+      const itens = [...menus[usuario.perfil], ['/chamados', 'Suporte'], ['/notificacoes', 'Notificações']];
+    %>
+    <nav>
+      <% for (const [href, rotulo] of itens) { %>
+        <a href="<%= href %>" class="<%= caminho.startsWith(href) ? 'ativo' : '' %>"><%= rotulo %></a>
+      <% } %>
+    </nav>
+    <div class="conta">
+      <a href="/conta"><%= usuario.nome %></a>
+      <span class="selo"><%= PERFIS[usuario.perfil] %></span>
+      <form method="post" action="/sair"><button class="link">Sair</button></form>
+    </div>
+  <% } %>
+</header>
+<main>
+  <% if (locals.flash) { %>
+    <p class="aviso <%= flash.tipo %>"><%= flash.texto %></p>
+  <% } %>

@@ -172,7 +172,11 @@ test('erros genéricos: rota inexistente e JSON malformado', async () => {
 test('coleção: exige login e cada usuário só vê os próprios itens', async () => {
   const { Carta, ItemColecao } = require('../src/models');
   const carta = await Carta.create({ scryfall_id: crypto.randomUUID(), nome: 'Sol Ring', preco_usd: 1.5 });
-  const dono = await Usuario.findOne({ where: { email: 'dono@teste.dev' } });
+  // Coleção é só do perfil jogador ("usuario"): a conta de loja recebe 403.
+  const lojista = await Usuario.findOne({ where: { email: 'dono@teste.dev' } });
+  assert.equal((await api('/colecao', { token: gerarToken(lojista) })).status, 403);
+
+  const dono = await Usuario.create({ nome: 'Colecionador', email: 'colecionador@teste.dev', senha: 'segredo1' });
   const outro = await Usuario.create({ nome: 'Outro', email: 'outro@teste.dev', senha: 'segredo1' });
   await ItemColecao.create({ usuario_id: dono.id, carta_id: carta.id, quantidade: 2 });
   await ItemColecao.create({ usuario_id: outro.id, carta_id: carta.id, condicao: 'HP' });

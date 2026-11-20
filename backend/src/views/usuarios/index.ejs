@@ -1,0 +1,58 @@
+<%- include('../partials/topo') %>
+<h1>Usuários</h1>
+
+<form method="get" action="/usuarios" class="campos cartao">
+  <label>Buscar <input name="busca" value="<%= filtros.busca || '' %>" placeholder="nome ou e-mail"></label>
+  <label>Perfil
+    <select name="perfil">
+      <option value="">Todos</option>
+      <% for (const [valor, rotulo] of Object.entries(PERFIS)) { %><option value="<%= valor %>" <%= filtros.perfil === valor ? 'selected' : '' %>><%= rotulo %></option><% } %>
+    </select>
+  </label>
+  <label>Situação
+    <select name="ativo">
+      <option value="">Todos</option>
+      <option value="true" <%= filtros.ativo === 'true' ? 'selected' : '' %>>Ativos</option>
+      <option value="false" <%= filtros.ativo === 'false' ? 'selected' : '' %>>Bloqueados</option>
+    </select>
+  </label>
+  <button class="secundario">Filtrar</button>
+</form>
+
+<div class="tabela"><table>
+  <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Loja</th><th>Situação</th><th></th></tr></thead>
+  <tbody>
+    <% for (const u of usuarios) { %>
+      <tr>
+        <td><%= u.nome %></td>
+        <td><%= u.email %></td>
+        <td><%= PERFIS[u.perfil] %></td>
+        <td><% if (u.loja) { %><a href="/lojas/<%= u.loja.id %>"><%= u.loja.nome %></a><% } else { %>—<% } %></td>
+        <td><span class="selo <%= u.ativo ? 'ok' : 'erro' %>"><%= u.ativo ? 'Ativo' : 'Bloqueado' %></span></td>
+        <td class="acoes">
+          <a class="botao secundario" href="/usuarios/<%= u.id %>">Editar</a>
+          <% if (u.id !== usuario.id) { %>
+            <%- include('../partials/excluir', { acao: `/usuarios/${u.id}`, pergunta: 'Excluir o usuário e todos os dados dele (coleção, decks, loja...)?' }) %>
+          <% } %>
+        </td>
+      </tr>
+    <% } %>
+  </tbody>
+</table></div>
+
+<section class="cartao" style="margin-top:1rem">
+  <h2>Novo usuário</h2>
+  <form method="post" action="/usuarios" class="campos">
+    <label>Nome <input name="nome" required></label>
+    <label>E-mail <input type="email" name="email" required></label>
+    <label>Senha <input type="password" name="senha" minlength="6" required></label>
+    <label>Perfil
+      <select name="perfil">
+        <% for (const [valor, rotulo] of Object.entries(PERFIS)) { %><option value="<%= valor %>"><%= rotulo %></option><% } %>
+      </select>
+    </label>
+    <button>Criar</button>
+  </form>
+  <p class="suave">Para um usuário com perfil Loja, cadastre a loja depois em <a href="/lojas">Lojas</a>.</p>
+</section>
+<%- include('../partials/fim') %>

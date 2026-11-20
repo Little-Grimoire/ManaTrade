@@ -1,0 +1,10 @@
+<%- include('../partials/topo') %>
+<h1>Cadastrar minha loja</h1>
+<p class="suave">Depois do cadastro, a loja passa pela aprovação do administrador antes de aparecer para os jogadores.</p>
+<section class="cartao">
+  <form method="post" action="/lojas" class="campos">
+    <%- include('_campos') %>
+    <button>Cadastrar</button>
+  </form>
+</section>
+<%- include('../partials/fim') %>

@@ -1,0 +1,12 @@
+<%# Campos do formulário de loja (cadastro e edição). Parâmetro: loja? %>
+<% const l = locals.loja || {}; %>
+<label>Nome <input name="nome" value="<%= l.nome || '' %>" required></label>
+<label>Endereço <input name="endereco" value="<%= l.endereco || '' %>" required></label>
+<label>Cidade <input name="cidade" value="<%= l.cidade || '' %>"></label>
+<label>UF <input name="uf" maxlength="2" value="<%= l.uf || '' %>"></label>
+<label>Telefone <input name="telefone" value="<%= l.telefone || '' %>"></label>
+<label>Horário <input name="horario" value="<%= l.horario || '' %>" placeholder="Seg–Sáb, 12h–22h"></label>
+<label>Latitude <input type="number" step="any" name="latitude" value="<%= l.latitude ?? '' %>"></label>
+<label>Longitude <input type="number" step="any" name="longitude" value="<%= l.longitude ?? '' %>"></label>
+<label class="largo">Descrição <textarea name="descricao"><%= l.descricao || '' %></textarea></label>
+<label class="check"><input type="checkbox" name="aceita_consignacao" <%= l.aceita_consignacao === false ? '' : 'checked' %>> Aceita consignação</label>

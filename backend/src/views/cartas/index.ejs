@@ -1,0 +1,45 @@
+<%- include('../partials/topo') %>
+<h1>Catálogo de cartas</h1>
+<p class="suave">Cartas já usadas no ManaTrade (cópia local dos dados do Scryfall).</p>
+
+<form method="get" action="/cartas" class="linha" style="margin-bottom:1rem">
+  <input name="busca" value="<%= busca %>" placeholder="Buscar pelo nome" style="max-width:320px">
+  <button class="secundario">Buscar</button>
+</form>
+
+<% if (usuario.perfil === 'admin') { %>
+  <section class="cartao">
+    <h2>Importar carta do Scryfall</h2>
+    <form method="post" action="/cartas" class="campos">
+      <label>Nome <input name="nome" placeholder="Counterspell"></label>
+      <label>ou Scryfall ID <input name="scryfall_id"></label>
+      <button>Importar</button>
+    </form>
+  </section>
+<% } %>
+
+<p class="suave"><%= total %> carta(s)</p>
+<div class="tabela"><table>
+  <thead><tr><th></th><th>Nome</th><th>Edição</th><th>Tipo</th><th>Custo</th><th>Ref. (US$)</th></tr></thead>
+  <tbody>
+    <% for (const c of cartas) { %>
+      <tr>
+        <td><% if (c.imagem_url) { %><img class="miniatura" src="<%= c.imagem_url %>" alt=""><% } %></td>
+        <td><a href="/cartas/<%= c.id %>"><%= c.nome %></a></td>
+        <td><%= c.edicao || '—' %></td>
+        <td><%= c.tipo || '—' %></td>
+        <td><%= c.custo_mana || '—' %></td>
+        <td><%= moeda(c.preco_usd, 'US$') %></td>
+      </tr>
+    <% } %>
+  </tbody>
+</table></div>
+
+<% if (paginas > 1) { %>
+  <p class="linha">
+    <% if (pagina > 1) { %><a class="botao secundario" href="?busca=<%= encodeURIComponent(busca) %>&pagina=<%= pagina - 1 %>">← Anterior</a><% } %>
+    <span class="suave">Página <%= pagina %> de <%= paginas %></span>
+    <% if (pagina < paginas) { %><a class="botao secundario" href="?busca=<%= encodeURIComponent(busca) %>&pagina=<%= pagina + 1 %>">Próxima →</a><% } %>
+  </p>
+<% } %>
+<%- include('../partials/fim') %>

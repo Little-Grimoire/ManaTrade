@@ -1,0 +1,46 @@
+<%- include('../partials/topo') %>
+<h1>Suporte</h1>
+
+<% if (usuario.perfil !== 'admin') { %>
+  <section class="cartao">
+    <h2>Abrir chamado</h2>
+    <form method="post" action="/chamados" class="campos">
+      <label class="largo">Assunto <input name="assunto" required maxlength="150"></label>
+      <label class="largo">Mensagem <textarea name="mensagem" required></textarea></label>
+      <button>Enviar</button>
+    </form>
+  </section>
+<% } %>
+
+<form method="get" action="/chamados" class="linha" style="margin-bottom:1rem">
+  <label>Status
+    <select name="status" onchange="this.form.submit()">
+      <option value="">Todos</option>
+      <% for (const [valor, rotulo] of Object.entries(STATUS_CHAMADO)) { %>
+        <option value="<%= valor %>" <%= filtro === valor ? 'selected' : '' %>><%= rotulo %></option>
+      <% } %>
+    </select>
+  </label>
+</form>
+
+<% if (!chamados.length) { %>
+  <p class="suave">Nenhum chamado.</p>
+<% } else { %>
+  <div class="tabela"><table>
+    <thead><tr><th>#</th><th>Assunto</th><% if (usuario.perfil === 'admin') { %><th>Aberto por</th><% } %><th>Status</th><th>Atendente</th><th>Aberto em</th><th></th></tr></thead>
+    <tbody>
+      <% for (const ch of chamados) { %>
+        <tr>
+          <td><%= ch.id %></td>
+          <td><%= ch.assunto %></td>
+          <% if (usuario.perfil === 'admin') { %><td><%= ch.usuario.nome %> <small class="suave">(<%= PERFIS[ch.usuario.perfil] %>)</small></td><% } %>
+          <td><span class="selo <%= ch.status === 'resolvido' ? 'ok' : 'alerta' %>"><%= STATUS_CHAMADO[ch.status] %></span></td>
+          <td><%= ch.atendente?.nome || '—' %></td>
+          <td><%= data(ch.created_at) %></td>
+          <td class="acoes"><a class="botao secundario" href="/chamados/<%= ch.id %>">Abrir</a></td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table></div>
+<% } %>
+<%- include('../partials/fim') %>

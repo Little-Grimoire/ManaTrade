@@ -1,0 +1,15 @@
+<%- include('../partials/topo') %>
+<p><a href="/acervo">← Acervo</a></p>
+<h1><%= item.carta.nome %></h1>
+<section class="cartao">
+  <form method="post" action="/acervo/<%= item.id %>" class="campos">
+    <input type="hidden" name="_method" value="PATCH">
+    <label>Quantidade <input type="number" name="quantidade" value="<%= item.quantidade %>" min="1" required></label>
+    <label>Condição <%- include('../partials/condicao', { valor: item.condicao }) %></label>
+    <label>Preço (R$) <input type="number" name="preco" step="0.01" min="0" value="<%= item.preco %>" required></label>
+    <label class="check"><input type="checkbox" name="foil" <%= item.foil ? 'checked' : '' %>> Foil</label>
+    <button>Salvar</button>
+  </form>
+</section>
+<%- include('../partials/excluir', { acao: `/acervo/${item.id}`, texto: 'Remover do acervo' }) %>
+<%- include('../partials/fim') %>
