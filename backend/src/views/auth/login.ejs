@@ -1,0 +1,11 @@
+<%- include('../partials/topo') %>
+<section class="autenticacao cartao">
+  <h1>Entrar</h1>
+  <form method="post" action="/login" class="campos">
+    <label>E-mail <input type="email" name="email" required autofocus></label>
+    <label>Senha <input type="password" name="senha" required></label>
+    <button>Entrar</button>
+  </form>
+  <p class="suave">Ainda não tem conta? <a href="/cadastro">Cadastre-se</a>.</p>
+</section>
+<%- include('../partials/fim') %>

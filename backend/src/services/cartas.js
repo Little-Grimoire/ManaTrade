@@ -1,5 +1,7 @@
 // Obtém cartas do cache local (tabela cartas) ou, se não existirem, busca no Scryfall e salva.
+const { Op } = require('sequelize');
 const { Carta } = require('../models');
+const { escolher, exigirAlgum } = require('../utils/campos');
 const HttpError = require('../utils/HttpError');
 
 const SCRYFALL = 'https://api.scryfall.com';
@@ -91,4 +93,29 @@ async function completarDetalhes(cartas) {
   }
 }
 
-module.exports = { obterCarta, obterCartasPorNome, completarDetalhes };
+// ---------- Catálogo (tabela cartas) ----------
+
+// Campos que o admin pode corrigir à mão. scryfall_id/oracle_id identificam a carta e não mudam.
+const CAMPOS_EDITAVEIS = ['nome', 'edicao', 'codigo_edicao', 'numero_colecionador', 'tipo', 'custo_mana', 'cmc', 'identidade_cor', 'raridade', 'imagem_url', 'preco_usd'];
+
+// Busca no cache local por nome (qualquer usuário logado), paginada.
+function listarCartas({ busca, limite = 50, pagina = 1 } = {}) {
+  const max = Math.min(Math.max(Number(limite) || 50, 1), 200);
+  const offset = (Math.max(Number(pagina) || 1, 1) - 1) * max;
+  const where = busca ? { nome: { [Op.like]: `%${busca}%` } } : {};
+  return Carta.findAndCountAll({ where, order: [['nome', 'ASC']], limit: max, offset });
+}
+
+async function atualizarCarta(carta, dados) {
+  await carta.update(exigirAlgum(escolher(dados, CAMPOS_EDITAVEIS), CAMPOS_EDITAVEIS));
+  return carta;
+}
+
+// Atualiza preço, imagem e legalidades com os dados atuais do Scryfall.
+async function sincronizarCarta(carta) {
+  return Carta.salvarDoScryfall(await chamarScryfall(`/cards/${encodeURIComponent(carta.scryfall_id)}`));
+}
+
+module.exports = {
+  obterCarta, obterCartasPorNome, completarDetalhes, listarCartas, atualizarCarta, sincronizarCarta, CAMPOS_EDITAVEIS,
+};

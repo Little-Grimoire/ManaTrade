@@ -1,0 +1,28 @@
+<%- include('../partials/topo') %>
+<p><a href="/colecao">← Coleção</a></p>
+<h1><%= item.carta.nome %></h1>
+
+<section class="cartao">
+  <form method="post" action="/colecao/<%= item.id %>" class="campos">
+    <input type="hidden" name="_method" value="PATCH">
+    <label>Quantidade <input type="number" name="quantidade" value="<%= item.quantidade %>" min="1" required></label>
+    <label>Condição <%- include('../partials/condicao', { valor: item.condicao }) %></label>
+    <label class="check"><input type="checkbox" name="foil" <%= item.foil ? 'checked' : '' %>> Foil</label>
+    <label class="largo">Observação <input name="observacao" value="<%= item.observacao || '' %>"></label>
+    <button>Salvar</button>
+  </form>
+</section>
+
+<section class="cartao">
+  <h2>Usada nos decks</h2>
+  <% if (!item.decks.length) { %>
+    <p class="suave">Esta carta não está em nenhum deck seu.</p>
+  <% } else { %>
+    <ul>
+      <% for (const d of item.decks) { %><li><a href="/decks/<%= d.id %>"><%= d.nome %></a> (<%= d.quantidade %>×)</li><% } %>
+    </ul>
+  <% } %>
+</section>
+
+<div class="linha"><a href="/lojas">Consignar esta carta numa loja</a> · <%- include('../partials/excluir', { acao: `/colecao/${item.id}`, texto: 'Remover da coleção' }) %></div>
+<%- include('../partials/fim') %>

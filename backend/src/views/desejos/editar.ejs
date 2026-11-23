@@ -1,0 +1,18 @@
+<%- include('../partials/topo') %>
+<p><a href="/desejos">← Lista de desejos</a></p>
+<h1><%= desejo.carta.nome %></h1>
+<section class="cartao">
+  <form method="post" action="/desejos/<%= desejo.id %>" class="campos">
+    <input type="hidden" name="_method" value="PATCH">
+    <label>Prioridade
+      <select name="prioridade">
+        <% for (const p of PRIORIDADES) { %><option value="<%= p %>" <%= p === desejo.prioridade ? 'selected' : '' %>><%= p %></option><% } %>
+      </select>
+    </label>
+    <label>Pago até (US$) <input type="number" name="preco_maximo_usd" step="0.01" min="0" value="<%= desejo.preco_maximo_usd ?? '' %>"></label>
+    <label class="largo">Observação <input name="observacao" value="<%= desejo.observacao || '' %>"></label>
+    <button>Salvar</button>
+  </form>
+</section>
+<%- include('../partials/excluir', { acao: `/desejos/${desejo.id}`, texto: 'Remover da lista' }) %>
+<%- include('../partials/fim') %>

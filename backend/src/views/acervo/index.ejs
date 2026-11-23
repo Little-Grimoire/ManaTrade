@@ -1,0 +1,36 @@
+<%- include('../partials/topo') %>
+<h1>Acervo da loja</h1>
+
+<section class="cartao">
+  <h2>Adicionar carta ao estoque</h2>
+  <form method="post" action="/acervo" class="campos">
+    <label>Nome da carta <input name="nome" required></label>
+    <label>Quantidade <input type="number" name="quantidade" value="1" min="1"></label>
+    <label>Condição <%- include('../partials/condicao') %></label>
+    <label>Preço (R$) <input type="number" name="preco" step="0.01" min="0" required></label>
+    <label class="check"><input type="checkbox" name="foil"> Foil</label>
+    <button>Adicionar</button>
+  </form>
+</section>
+
+<% if (!itens.length) { %>
+  <p class="suave">O acervo está vazio.</p>
+<% } else { %>
+  <div class="tabela"><table>
+    <thead><tr><th>Carta</th><th>Condição</th><th>Foil</th><th>Qtd.</th><th>Preço</th><th>Origem</th><th></th></tr></thead>
+    <tbody>
+      <% for (const i of itens) { %>
+        <tr>
+          <td><a href="/cartas/<%= i.carta.id %>"><%= i.carta.nome %></a></td>
+          <td><%= i.condicao %></td><td><%= i.foil ? 'Sim' : 'Não' %></td><td><%= i.quantidade %></td><td><%= moeda(i.preco) %></td>
+          <td><%- i.consignacao_id ? `<a href="/consignacoes/${i.consignacao_id}">Consignação #${i.consignacao_id}</a>` : 'Estoque próprio' %></td>
+          <td class="acoes">
+            <a class="botao secundario" href="/acervo/<%= i.id %>">Editar</a>
+            <%- include('../partials/excluir', { acao: `/acervo/${i.id}`, texto: 'Remover' }) %>
+          </td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table></div>
+<% } %>
+<%- include('../partials/fim') %>

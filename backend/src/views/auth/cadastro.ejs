@@ -1,0 +1,43 @@
+<%- include('../partials/topo') %>
+<section class="autenticacao cartao">
+  <h1>Criar conta</h1>
+  <form method="post" action="/cadastro" class="campos">
+    <label>Nome <input name="nome" required></label>
+    <label>E-mail <input type="email" name="email" required></label>
+    <label>Senha (mín. 6 caracteres) <input type="password" name="senha" minlength="6" required></label>
+    <label>Tipo de conta
+      <select name="perfil" id="perfil">
+        <option value="usuario">Jogador</option>
+        <option value="loja">Loja</option>
+      </select>
+    </label>
+
+    <%# Dados da loja: só aparecem (e só são enviados) quando o perfil é "Loja". %>
+    <fieldset id="dados-loja" hidden>
+      <legend>Dados da loja (passa por aprovação do administrador)</legend>
+      <div class="campos" style="display:grid;gap:.75rem">
+        <label>Nome da loja <input name="loja_nome"></label>
+        <label>Endereço <input name="loja_endereco"></label>
+        <label>Cidade <input name="loja_cidade"></label>
+        <label>UF <input name="loja_uf" maxlength="2"></label>
+        <label>Telefone <input name="loja_telefone"></label>
+        <label>Horário <input name="loja_horario" placeholder="Seg–Sáb, 12h–22h"></label>
+      </div>
+    </fieldset>
+    <button>Criar conta</button>
+  </form>
+  <p class="suave">Já tem conta? <a href="/login">Entrar</a>.</p>
+</section>
+<script>
+  const perfil = document.getElementById('perfil');
+  const loja = document.getElementById('dados-loja');
+  const atualizar = () => {
+    const ehLoja = perfil.value === 'loja';
+    loja.hidden = !ehLoja;
+    loja.disabled = !ehLoja;
+    loja.querySelectorAll('[name=loja_nome],[name=loja_endereco]').forEach((c) => { c.required = ehLoja; });
+  };
+  perfil.addEventListener('change', atualizar);
+  atualizar();
+</script>
+<%- include('../partials/fim') %>

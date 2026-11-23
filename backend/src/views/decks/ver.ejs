@@ -1,0 +1,92 @@
+<%- include('../partials/topo') %>
+<p><a href="/decks">← Meus decks</a></p>
+<div class="linha entre">
+  <h1><%= deck.nome %> <small class="suave">· <%= deck.formatoNome %></small></h1>
+  <span class="selo <%= deck.validacao.valido ? 'ok' : 'alerta' %>">
+    <%= deck.validacao.total %><%= deck.validacao.minimo ? ` / ${deck.validacao.minimo}` : '' %> cartas · <%= deck.validacao.valido ? 'Válido' : 'Incompleto' %>
+  </span>
+</div>
+<% if (deck.descricao) { %><p class="suave"><%= deck.descricao %></p><% } %>
+
+<% if (deck.validacao.problemas.length) { %>
+  <div class="aviso alerta"><ul style="margin:0;padding-left:1.2rem">
+    <% for (const p of deck.validacao.problemas) { %><li><%= p %></li><% } %>
+  </ul></div>
+<% } %>
+
+<% if (deck.comandante) { %>
+  <section class="cartao linha">
+    <% if (deck.comandante.imagem_url) { %><img class="miniatura" src="<%= deck.comandante.imagem_url %>" alt=""><% } %>
+    <div><strong>Comandante:</strong> <%= deck.comandante.nome %> <span class="suave">(<%= deck.comandante.identidade_cor || 'incolor' %>)</span></div>
+  </section>
+<% } %>
+
+<section class="cartao">
+  <h2>Adicionar carta</h2>
+  <form method="post" action="/decks/<%= deck.id %>/cartas" class="campos">
+    <label>Nome da carta <input name="nome" required></label>
+    <label>Quantidade <input type="number" name="quantidade" value="1" min="1"></label>
+    <button>Adicionar</button>
+  </form>
+</section>
+
+<h2>Cartas (<%= deck.cartas.reduce((s, c) => s + c.quantidade, 0) %>)</h2>
+<% if (!deck.cartas.length) { %>
+  <p class="suave">O deck ainda não tem cartas. Adicione acima ou importe uma lista.</p>
+<% } else { %>
+  <div class="tabela"><table>
+    <thead><tr><th>Carta</th><th>Tipo</th><th>Na coleção</th><th>Quantidade</th><th></th></tr></thead>
+    <tbody>
+      <% for (const c of deck.cartas) { %>
+        <tr>
+          <td>
+            <a href="/cartas/<%= c.carta.id %>"><%= c.carta.nome %></a>
+            <% for (const p of c.problemas) { %><br><small class="selo alerta"><%= p %></small><% } %>
+          </td>
+          <td><%= c.categoria %></td>
+          <td><%= c.naColecao >= c.quantidade ? '✔' : `${c.naColecao}/${c.quantidade}` %></td>
+          <td>
+            <form method="post" action="/decks/<%= deck.id %>/cartas/<%= c.carta.id %>" class="linha">
+              <input type="hidden" name="_method" value="PATCH">
+              <input class="curto" type="number" name="quantidade" value="<%= c.quantidade %>" min="1">
+              <button class="secundario">Salvar</button>
+            </form>
+          </td>
+          <td class="acoes"><%- include('../partials/excluir', { acao: `/decks/${deck.id}/cartas/${c.carta.id}`, texto: 'Remover', pergunta: 'Remover esta carta do deck?' }) %></td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table></div>
+<% } %>
+
+<div class="grade" style="margin-top:1rem">
+  <section class="cartao">
+    <h2>Importar lista</h2>
+    <form method="post" action="/decks/<%= deck.id %>/importar" class="campos">
+      <label class="largo">Uma carta por linha (ex.: "4 Lightning Bolt"). Nomes exatos, em inglês.
+        <textarea name="lista" required></textarea>
+      </label>
+      <label class="check"><input type="checkbox" name="substituir"> Substituir as cartas atuais</label>
+      <button>Importar</button>
+    </form>
+  </section>
+
+  <section class="cartao">
+    <h2>Editar deck</h2>
+    <form method="post" action="/decks/<%= deck.id %>" class="campos">
+      <input type="hidden" name="_method" value="PATCH">
+      <label>Nome <input name="nome" value="<%= deck.nome %>" required></label>
+      <label>Formato
+        <select name="formato">
+          <% for (const f of formatos) { %><option value="<%= f.chave %>" <%= f.chave === deck.formato ? 'selected' : '' %>><%= f.nome %></option><% } %>
+        </select>
+      </label>
+      <label>Comandante <input name="comandante" value="<%= deck.comandante?.nome || '' %>" placeholder="(vazio remove)"></label>
+      <input type="hidden" name="comandante_atual" value="<%= deck.comandante?.nome || '' %>">
+      <label class="largo">Descrição <input name="descricao" value="<%= deck.descricao || '' %>"></label>
+      <button>Salvar</button>
+    </form>
+    <div style="margin-top:1rem"><%- include('../partials/excluir', { acao: `/decks/${deck.id}`, texto: 'Excluir deck', pergunta: 'Excluir este deck e todas as cartas dele?' }) %></div>
+  </section>
+</div>
+<%- include('../partials/fim') %>

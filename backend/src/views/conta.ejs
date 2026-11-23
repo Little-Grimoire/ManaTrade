@@ -1,0 +1,22 @@
+<%- include('partials/topo') %>
+<h1>Minha conta</h1>
+<section class="cartao">
+  <h2>Dados</h2>
+  <form method="post" action="/conta" class="campos">
+    <input type="hidden" name="_method" value="PATCH">
+    <label>Nome <input name="nome" value="<%= usuario.nome %>" required></label>
+    <label>E-mail <input type="email" name="email" value="<%= usuario.email %>" required></label>
+    <label>Perfil <input value="<%= PERFIS[usuario.perfil] %>" disabled></label>
+    <button>Salvar</button>
+  </form>
+</section>
+<section class="cartao">
+  <h2>Alterar senha</h2>
+  <form method="post" action="/conta/senha" class="campos">
+    <input type="hidden" name="_method" value="PATCH">
+    <label>Senha atual <input type="password" name="senhaAtual" required></label>
+    <label>Nova senha <input type="password" name="novaSenha" minlength="6" required></label>
+    <button>Alterar senha</button>
+  </form>
+</section>
+<%- include('partials/fim') %>

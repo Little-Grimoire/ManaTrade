@@ -1,0 +1,41 @@
+<%- include('../partials/topo') %>
+<h1><%= usuario.perfil === 'loja' ? 'Consignações recebidas' : usuario.perfil === 'admin' ? 'Todas as consignações' : 'Minhas consignações' %></h1>
+
+<% if (usuario.perfil === 'usuario') { %>
+  <p class="suave">Para consignar uma carta, abra uma <a href="/lojas">loja</a> e escolha o item da sua coleção.</p>
+<% } %>
+
+<form method="get" action="/consignacoes" class="linha" style="margin-bottom:1rem">
+  <label>Status
+    <select name="status" onchange="this.form.submit()">
+      <option value="">Todos</option>
+      <% for (const [valor, rotulo] of Object.entries(STATUS_CONSIGNACAO)) { %>
+        <option value="<%= valor %>" <%= filtro === valor ? 'selected' : '' %>><%= rotulo %></option>
+      <% } %>
+    </select>
+  </label>
+</form>
+
+<% if (!consignacoes.length) { %>
+  <p class="suave">Nenhuma consignação.</p>
+<% } else { %>
+  <div class="tabela"><table>
+    <thead><tr><th>#</th><th>Carta</th><th><%= usuario.perfil === 'loja' ? 'Jogador' : 'Loja' %></th><% if (usuario.perfil === 'admin') { %><th>Jogador</th><% } %><th>Qtd.</th><th>Preço pedido</th><th>Status</th><th>Enviada em</th><th></th></tr></thead>
+    <tbody>
+      <% for (const c of consignacoes) { %>
+        <tr>
+          <td><%= c.id %></td>
+          <td><%= c.carta.nome %> <small class="suave"><%= c.condicao %><%= c.foil ? ' · foil' : '' %></small></td>
+          <td><%= usuario.perfil === 'loja' ? c.usuario.nome : c.loja.nome %></td>
+          <% if (usuario.perfil === 'admin') { %><td><%= c.usuario.nome %></td><% } %>
+          <td><%= c.quantidade %></td>
+          <td><%= moeda(c.preco_pedido) %></td>
+          <td><span class="selo <%= ['vendida', 'aceita', 'a_venda'].includes(c.status) ? 'ok' : c.status === 'pendente' ? 'alerta' : '' %>"><%= STATUS_CONSIGNACAO[c.status] %></span></td>
+          <td><%= data(c.created_at) %></td>
+          <td class="acoes"><a class="botao secundario" href="/consignacoes/<%= c.id %>">Abrir</a></td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table></div>
+<% } %>
+<%- include('../partials/fim') %>

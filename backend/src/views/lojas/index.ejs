@@ -1,0 +1,65 @@
+<%- include('../partials/topo') %>
+<h1>Lojas</h1>
+
+<% if (usuario.perfil === 'admin') { %>
+  <form method="get" action="/lojas" class="linha" style="margin-bottom:1rem">
+    <label>Situação
+      <select name="aprovada" onchange="this.form.submit()">
+        <option value="" <%= !filtros.aprovada ? 'selected' : '' %>>Todas</option>
+        <option value="false" <%= filtros.aprovada === 'false' ? 'selected' : '' %>>Aguardando aprovação</option>
+        <option value="true" <%= filtros.aprovada === 'true' ? 'selected' : '' %>>Aprovadas</option>
+      </select>
+    </label>
+  </form>
+<% } %>
+
+<% if (!lojas.length) { %>
+  <p class="suave">Nenhuma loja encontrada.</p>
+<% } else { %>
+  <div class="tabela"><table>
+    <thead><tr><th>Loja</th><th>Cidade</th><th>Horário</th><th>Consignação</th><% if (usuario.perfil === 'admin') { %><th>Dono</th><th>Situação</th><th></th><% } %></tr></thead>
+    <tbody>
+      <% for (const l of lojas) { %>
+        <tr>
+          <td><a href="/lojas/<%= l.id %>"><%= l.nome %></a><br><small class="suave"><%= l.endereco %></small></td>
+          <td><%= [l.cidade, l.uf].filter(Boolean).join('/') || '—' %></td>
+          <td><%= l.horario || '—' %></td>
+          <td><%= l.aceita_consignacao ? 'Aceita' : 'Não aceita' %></td>
+          <% if (usuario.perfil === 'admin') { %>
+            <td><%= l.dono?.nome %><br><small class="suave"><%= l.dono?.email %></small></td>
+            <td><span class="selo <%= l.aprovada ? 'ok' : 'alerta' %>"><%= l.aprovada ? 'Aprovada' : 'Pendente' %></span></td>
+            <td class="acoes">
+              <form method="post" action="/lojas/<%= l.id %>/aprovacao" class="inline">
+                <input type="hidden" name="_method" value="PATCH">
+                <input type="hidden" name="aprovada" value="<%= l.aprovada ? 'false' : 'true' %>">
+                <button class="<%= l.aprovada ? 'secundario' : '' %>"><%= l.aprovada ? 'Suspender' : 'Aprovar' %></button>
+              </form>
+              <%- include('../partials/excluir', { acao: `/lojas/${l.id}`, pergunta: 'Excluir a loja, o acervo e as consignações dela?' }) %>
+            </td>
+          <% } %>
+        </tr>
+      <% } %>
+    </tbody>
+  </table></div>
+<% } %>
+
+<% if (usuario.perfil === 'admin') { %>
+  <section class="cartao" style="margin-top:1rem">
+    <h2>Cadastrar loja para um usuário</h2>
+    <% if (!semLoja.length) { %>
+      <p class="suave">Todos os usuários com perfil "loja" já têm loja. Crie um usuário com esse perfil em <a href="/usuarios">Usuários</a>.</p>
+    <% } else { %>
+      <form method="post" action="/lojas" class="campos">
+        <label>Dono
+          <select name="usuario_id" required>
+            <% for (const u of semLoja) { %><option value="<%= u.id %>"><%= u.nome %> (<%= u.email %>)</option><% } %>
+          </select>
+        </label>
+        <%- include('_campos') %>
+        <label class="check"><input type="checkbox" name="aprovada" value="true" checked> Já aprovada</label>
+        <button>Cadastrar</button>
+      </form>
+    <% } %>
+  </section>
+<% } %>
+<%- include('../partials/fim') %>

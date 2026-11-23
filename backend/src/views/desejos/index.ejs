@@ -1,0 +1,41 @@
+<%- include('../partials/topo') %>
+<h1>Lista de desejos</h1>
+
+<section class="cartao">
+  <h2>Adicionar carta</h2>
+  <form method="post" action="/desejos" class="campos">
+    <label>Nome da carta <input name="nome" required placeholder="Sol Ring"></label>
+    <label>Prioridade
+      <select name="prioridade">
+        <% for (const p of PRIORIDADES) { %><option value="<%= p %>" <%= p === 'media' ? 'selected' : '' %>><%= p %></option><% } %>
+      </select>
+    </label>
+    <label>Pago até (US$) <input type="number" name="preco_maximo_usd" step="0.01" min="0"></label>
+    <label class="largo">Observação <input name="observacao"></label>
+    <button>Adicionar</button>
+  </form>
+</section>
+
+<% if (!desejos.length) { %>
+  <p class="suave">Nenhuma carta na lista.</p>
+<% } else { %>
+  <div class="tabela"><table>
+    <thead><tr><th>Carta</th><th>Prioridade</th><th>Pago até</th><th>Ref. atual</th><th>Observação</th><th></th></tr></thead>
+    <tbody>
+      <% for (const d of desejos) { %>
+        <tr>
+          <td><a href="/cartas/<%= d.carta.id %>"><%= d.carta.nome %></a></td>
+          <td><span class="selo <%= d.prioridade === 'alta' ? 'erro' : '' %>"><%= d.prioridade %></span></td>
+          <td><%= moeda(d.preco_maximo_usd, 'US$') %></td>
+          <td><%= moeda(d.carta.preco_usd, 'US$') %></td>
+          <td><%= d.observacao || '' %></td>
+          <td class="acoes">
+            <a class="botao secundario" href="/desejos/<%= d.id %>">Editar</a>
+            <%- include('../partials/excluir', { acao: `/desejos/${d.id}`, texto: 'Remover' }) %>
+          </td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table></div>
+<% } %>
+<%- include('../partials/fim') %>

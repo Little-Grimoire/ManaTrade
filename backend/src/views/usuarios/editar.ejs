@@ -1,0 +1,23 @@
+<%- include('../partials/topo') %>
+<p><a href="/usuarios">← Usuários</a></p>
+<h1><%= alvo.nome %></h1>
+<section class="cartao">
+  <form method="post" action="/usuarios/<%= alvo.id %>" class="campos">
+    <input type="hidden" name="_method" value="PATCH">
+    <label>Nome <input name="nome" value="<%= alvo.nome %>" required></label>
+    <label>E-mail <input type="email" name="email" value="<%= alvo.email %>" required></label>
+    <label>Nova senha <input type="password" name="senha" minlength="6" placeholder="(em branco mantém)"></label>
+    <label>Perfil
+      <select name="perfil">
+        <% for (const [valor, rotulo] of Object.entries(PERFIS)) { %><option value="<%= valor %>" <%= alvo.perfil === valor ? 'selected' : '' %>><%= rotulo %></option><% } %>
+      </select>
+    </label>
+    <label class="check"><input type="checkbox" name="ativo" <%= alvo.ativo ? 'checked' : '' %>> Conta ativa (desmarque para bloquear)</label>
+    <button>Salvar</button>
+  </form>
+</section>
+<% if (alvo.loja) { %><p>Loja: <a href="/lojas/<%= alvo.loja.id %>"><%= alvo.loja.nome %></a></p><% } %>
+<% if (alvo.id !== usuario.id) { %>
+  <%- include('../partials/excluir', { acao: `/usuarios/${alvo.id}`, texto: 'Excluir usuário', pergunta: 'Excluir o usuário e todos os dados dele?' }) %>
+<% } %>
+<%- include('../partials/fim') %>

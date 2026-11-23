@@ -28,6 +28,7 @@
 - [x] Lista de desejos: tabela N:N, CRUD `/api/desejos`, tela no app e botão no ManaScan
 - [x] Autenticação JWT, 3 perfis e middlewares `autenticar` / `autorizar(...)` / `exigirLojaAprovada`
 - [ ] Testar o schema num PostgreSQL real (até agora só SQLite)
-- [ ] `backend/` Express MVC: controllers + views com CRUD de todas as tabelas, 3 perfis, middleware de autorização
-- [ ] API REST com JWT e documentação das rotas
+- [x] `backend/` Express MVC: views EJS + controllers com CRUD de todas as tabelas, 3 perfis, permissões por middleware (`autorizar`, `carregar`)
+- [x] API REST com JWT e CRUD de todas as tabelas; documentação OpenAPI em `/api/docs`
+- [ ] App: esconder a aba Biblioteca para loja/admin (coleção/decks/desejos agora respondem 403 para esses perfis)
 - [ ] Publicar na web

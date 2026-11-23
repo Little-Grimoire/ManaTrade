@@ -1,0 +1,41 @@
+<%- include('../partials/topo') %>
+<h1>Meus decks</h1>
+
+<section class="cartao">
+  <h2>Novo deck</h2>
+  <form method="post" action="/decks" class="campos">
+    <label>Nome <input name="nome" required></label>
+    <label>Formato
+      <select name="formato">
+        <% for (const f of formatos) { %><option value="<%= f.chave %>"><%= f.nome %></option><% } %>
+      </select>
+    </label>
+    <label>Comandante (só Commander) <input name="comandante" placeholder="Atraxa, Praetors' Voice"></label>
+    <label class="largo">Descrição <input name="descricao"></label>
+    <button>Criar deck</button>
+  </form>
+</section>
+
+<% if (!decks.length) { %>
+  <p class="suave">Você ainda não tem decks.</p>
+<% } else { %>
+  <div class="tabela"><table>
+    <thead><tr><th>Deck</th><th>Formato</th><th>Comandante</th><th>Cartas</th><th>Situação</th><th></th></tr></thead>
+    <tbody>
+      <% for (const d of decks) { %>
+        <tr>
+          <td><a href="/decks/<%= d.id %>"><%= d.nome %></a></td>
+          <td><%= d.formatoNome %></td>
+          <td><%= d.comandante?.nome || '—' %></td>
+          <td><%= d.total %><% if (d.minimo) { %> / <%= d.minimo === d.maximo ? d.minimo : `${d.minimo}+` %><% } %></td>
+          <td><span class="selo <%= d.valido ? 'ok' : 'alerta' %>"><%= d.valido ? 'Válido' : 'Incompleto' %></span></td>
+          <td class="acoes">
+            <a class="botao secundario" href="/decks/<%= d.id %>">Abrir</a>
+            <%- include('../partials/excluir', { acao: `/decks/${d.id}`, pergunta: 'Excluir este deck e todas as cartas dele?' }) %>
+          </td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table></div>
+<% } %>
+<%- include('../partials/fim') %>

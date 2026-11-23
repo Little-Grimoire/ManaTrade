@@ -1,0 +1,40 @@
+<%- include('../partials/topo') %>
+<h1>Minha coleção</h1>
+
+<section class="cartao">
+  <h2>Adicionar carta</h2>
+  <form method="post" action="/colecao" class="campos">
+    <label>Nome da carta (em inglês; aceita erros de digitação) <input name="nome" required placeholder="Lightning Bolt"></label>
+    <label>Quantidade <input type="number" name="quantidade" value="1" min="1"></label>
+    <label>Condição <%- include('../partials/condicao') %></label>
+    <label class="check"><input type="checkbox" name="foil"> Foil</label>
+    <label class="largo">Observação <input name="observacao"></label>
+    <button>Adicionar</button>
+  </form>
+</section>
+
+<% if (!itens.length) { %>
+  <p class="suave">Sua coleção está vazia.</p>
+<% } else { %>
+  <div class="tabela"><table>
+    <thead><tr><th></th><th>Carta</th><th>Edição</th><th>Qtd.</th><th>Condição</th><th>Foil</th><th>Ref. (US$)</th><th></th></tr></thead>
+    <tbody>
+      <% for (const item of itens) { %>
+        <tr>
+          <td><% if (item.carta.imagem_url) { %><img class="miniatura" src="<%= item.carta.imagem_url %>" alt=""><% } %></td>
+          <td><a href="/cartas/<%= item.carta.id %>"><%= item.carta.nome %></a><% if (item.observacao) { %><br><small class="suave"><%= item.observacao %></small><% } %></td>
+          <td><%= item.carta.edicao || '—' %></td>
+          <td><%= item.quantidade %></td>
+          <td><%= item.condicao %></td>
+          <td><%= item.foil ? 'Sim' : 'Não' %></td>
+          <td><%= moeda(item.carta.preco_usd, 'US$') %></td>
+          <td class="acoes">
+            <a class="botao secundario" href="/colecao/<%= item.id %>">Editar</a>
+            <%- include('../partials/excluir', { acao: `/colecao/${item.id}`, texto: 'Remover', pergunta: 'Remover este item da coleção?' }) %>
+          </td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table></div>
+<% } %>
+<%- include('../partials/fim') %>

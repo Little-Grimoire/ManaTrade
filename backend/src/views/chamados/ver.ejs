@@ -1,0 +1,51 @@
+<%- include('../partials/topo') %>
+<p><a href="/chamados">← Suporte</a></p>
+<div class="linha entre">
+  <h1><%= chamado.assunto %></h1>
+  <span class="selo <%= chamado.status === 'resolvido' ? 'ok' : 'alerta' %>"><%= STATUS_CHAMADO[chamado.status] %></span>
+</div>
+
+<section class="cartao">
+  <p class="suave">Aberto por <%= chamado.usuario.nome %> em <%= data(chamado.created_at) %></p>
+  <p style="white-space:pre-wrap"><%= chamado.mensagem %></p>
+</section>
+
+<% if (chamado.resposta) { %>
+  <section class="cartao">
+    <p class="suave">Resposta de <%= chamado.atendente?.nome || 'suporte' %></p>
+    <p style="white-space:pre-wrap"><%= chamado.resposta %></p>
+  </section>
+<% } %>
+
+<% if (usuario.perfil === 'admin') { %>
+  <section class="cartao">
+    <h2>Atender</h2>
+    <form method="post" action="/chamados/<%= chamado.id %>" class="campos">
+      <input type="hidden" name="_method" value="PATCH">
+      <label>Status
+        <select name="status">
+          <% for (const [valor, rotulo] of Object.entries(STATUS_CHAMADO)) { %>
+            <option value="<%= valor %>" <%= chamado.status === valor ? 'selected' : '' %>><%= rotulo %></option>
+          <% } %>
+        </select>
+      </label>
+      <label class="largo">Resposta <textarea name="resposta"><%= chamado.resposta || '' %></textarea></label>
+      <button>Salvar e notificar</button>
+    </form>
+  </section>
+<% } else if (chamado.status === 'aberto') { %>
+  <section class="cartao">
+    <h2>Editar chamado</h2>
+    <form method="post" action="/chamados/<%= chamado.id %>" class="campos">
+      <input type="hidden" name="_method" value="PATCH">
+      <label class="largo">Assunto <input name="assunto" value="<%= chamado.assunto %>" required></label>
+      <label class="largo">Mensagem <textarea name="mensagem" required><%= chamado.mensagem %></textarea></label>
+      <button>Salvar</button>
+    </form>
+  </section>
+<% } %>
+
+<% if (usuario.perfil === 'admin' || chamado.status === 'aberto') { %>
+  <%- include('../partials/excluir', { acao: `/chamados/${chamado.id}`, texto: 'Excluir chamado' }) %>
+<% } %>
+<%- include('../partials/fim') %>
