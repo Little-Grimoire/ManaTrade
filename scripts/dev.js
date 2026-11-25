@@ -1,7 +1,8 @@
 // Sobe o ambiente de desenvolvimento com um comando só: `npm run dev`.
 // 1. Descobre o IP da máquina na rede e atualiza o .env (o celular precisa dele).
 // 2. Inicia o backend (porta 3001) e espera ele responder.
-// 3. Inicia o Expo com cache limpo.
+// 3. Inicia o backend-ml (porta 8000, venv em backend-ml/.venv) e espera ele responder.
+// 4. Inicia o Expo com cache limpo.
 // Ctrl+C encerra tudo.
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -102,6 +103,20 @@ async function main() {
     iniciar('Backend', 'npm run dev', path.join(RAIZ, 'backend'));
     if (!(await esperarPorta(PORTA_BACKEND))) {
       console.error('[dev] Backend não respondeu em 60s.');
+      return encerrar(1);
+    }
+  }
+
+  if (await portaAberta(PORTA_ML)) {
+    console.log(`[dev] backend-ml já está rodando na porta ${PORTA_ML}; usando o existente.`);
+  } else {
+    const pastaMl = path.join(RAIZ, 'backend-ml');
+    const pythonVenv = path.join(pastaMl, '.venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
+    const python = fs.existsSync(pythonVenv) ? `"${pythonVenv}"` : 'python';
+    console.log('[dev] Iniciando backend-ml...');
+    iniciar('backend-ml', `${python} -m uvicorn main:app --host 0.0.0.0 --port ${PORTA_ML}`, pastaMl);
+    if (!(await esperarPorta(PORTA_ML, 120000))) {
+      console.error('[dev] backend-ml não respondeu em 120s.');
       return encerrar(1);
     }
   }
