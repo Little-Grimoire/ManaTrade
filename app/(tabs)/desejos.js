@@ -1,7 +1,7 @@
 import Head from 'expo-router/head';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Cabecalho from '../../src/components/Cabecalho';
 import BotaoPrimario from '../../src/components/BotaoPrimario';
 import ChipFiltro from '../../src/components/ChipFiltro';
@@ -11,6 +11,7 @@ import ModalConfirmacao from '../../src/components/ModalConfirmacao';
 import Skeleton from '../../src/components/Skeleton';
 import { PRIORIDADES, adicionarDesejo, atualizarDesejo, listarDesejos, removerDesejo } from '../../src/services/desejos';
 import { theme } from '../../src/theme';
+import ImagemCarta from '../../src/components/ImagemCarta';
 
 const ROTULO_PRIORIDADE = Object.fromEntries(PRIORIDADES.map((p) => [p.valor, p.rotulo]));
 const ORDEM_PRIORIDADE = { alta: 0, media: 1, baixa: 2 };
@@ -119,7 +120,7 @@ export default function Desejos() {
         return (
           <View key={d.id} style={styles.item}>
             <View style={styles.itemTop}>
-              {d.carta.imagem_url ? <Image source={{ uri: d.carta.imagem_url }} style={styles.thumb} accessibilityLabel={d.carta.nome} /> : <View style={[styles.thumb, styles.thumbVazio]} />}
+              {d.carta.imagem_url ? <ImagemCarta uri={d.carta.imagem_url} tamanho="small" style={styles.thumb} accessibilityLabel={d.carta.nome} /> : <View style={[styles.thumb, styles.thumbVazio]} />}
               <View style={styles.copy}>
                 <Text style={styles.nome}>{d.carta.nome}</Text>
                 {!!d.carta.edicao && <Text style={styles.muted}>{d.carta.edicao}</Text>}

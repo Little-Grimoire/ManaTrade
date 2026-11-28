@@ -1,7 +1,7 @@
 import Head from 'expo-router/head';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Cabecalho from '../../src/components/Cabecalho';
 import BotaoPrimario from '../../src/components/BotaoPrimario';
 import ChipFiltro from '../../src/components/ChipFiltro';
@@ -14,6 +14,7 @@ import { CONDICOES, adicionarNaColecao, atualizarItemColecao, listarColecao, rem
 import { listarDecks } from '../../src/services/decks';
 import { useBreakpoint } from '../../src/hooks/useBreakpoint';
 import { theme } from '../../src/theme';
+import ImagemCarta from '../../src/components/ImagemCarta';
 
 const usd = (v) => `US$ ${Number(v).toFixed(2)}`;
 
@@ -122,7 +123,7 @@ function Colecao() {
           {visiveis.map((item) => (
             <View key={item.id} style={styles.item}>
               <Pressable accessibilityRole="button" onPress={() => { setMsgItem(''); setAberto(aberto === item.id ? null : item.id); }} style={styles.itemTop}>
-                {item.carta.imagem_url ? <Image source={{ uri: item.carta.imagem_url }} style={styles.thumb} /> : <View style={[styles.thumb, styles.thumbVazio]} />}
+                {item.carta.imagem_url ? <ImagemCarta uri={item.carta.imagem_url} tamanho="small" style={styles.thumb} accessibilityLabel={item.carta.nome} /> : <View style={[styles.thumb, styles.thumbVazio]} />}
                 <View style={styles.flex}>
                   <Text style={styles.nome}>{item.quantidade}× {item.carta.nome}</Text>
                   <Text style={styles.muted}>{[item.carta.edicao, item.condicao, item.foil && 'Foil'].filter(Boolean).join(' · ')}</Text>
@@ -173,7 +174,7 @@ function Decks() {
         <EstadoVazio titulo="Nenhum deck" texto="Crie um deck e adicione cartas digitando, colando uma lista ou pelo ManaScan." acao="Criar deck" onPress={() => router.push('/decks/novo')} />
       ) : decks.map((d) => (
         <Pressable key={d.id} accessibilityRole="button" onPress={() => router.push(`/decks/${d.id}`)} style={({ hovered, pressed }) => [styles.item, styles.itemTop, (hovered || pressed) && styles.hover]}>
-          {d.comandante?.imagem_url ? <Image source={{ uri: d.comandante.imagem_url }} style={styles.thumb} /> : <View style={[styles.thumb, styles.thumbVazio, styles.centro]}><Text style={styles.formatoSigla}>{d.formatoNome?.slice(0, 3)}</Text></View>}
+          {d.comandante?.imagem_url ? <ImagemCarta uri={d.comandante.imagem_url} tamanho="small" style={styles.thumb} accessibilityLabel={d.comandante.nome} /> : <View style={[styles.thumb, styles.thumbVazio, styles.centro]}><Text style={styles.formatoSigla}>{d.formatoNome?.slice(0, 3)}</Text></View>}
           <View style={styles.flex}>
             <Text style={styles.nome}>{d.nome}</Text>
             <Text style={styles.muted}>{d.formatoNome}{d.comandante ? ` · ${d.comandante.nome}` : ''}</Text>

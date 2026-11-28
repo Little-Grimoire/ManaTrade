@@ -1,7 +1,7 @@
 import Head from 'expo-router/head';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Cabecalho from '../../src/components/Cabecalho';
 import BotaoPrimario from '../../src/components/BotaoPrimario';
 import BotaoSecundario from '../../src/components/BotaoSecundario';
@@ -16,6 +16,7 @@ import {
 } from '../../src/services/decks';
 import { getExampleDeck, listExampleDecks } from '../../src/services/mlApi';
 import { theme } from '../../src/theme';
+import ImagemCarta from '../../src/components/ImagemCarta';
 
 const ORDEM_CATEGORIAS = ['Criaturas', 'Planeswalkers', 'Mágicas instantâneas', 'Feitiços', 'Artefatos', 'Encantamentos', 'Batalhas', 'Outros', 'Terrenos'];
 
@@ -94,7 +95,7 @@ export default function DeckDetalhe() {
           <Text style={styles.boxTitle}>Comandante</Text>
           {deck.comandante ? (
             <View style={styles.linhaTopo}>
-              {!!deck.comandante.imagem_url && <Image source={{ uri: deck.comandante.imagem_url }} style={styles.cmdImg} accessibilityLabel={deck.comandante.nome} />}
+              {!!deck.comandante.imagem_url && <ImagemCarta uri={deck.comandante.imagem_url} style={styles.cmdImg} accessibilityLabel={deck.comandante.nome} />}
               <View style={styles.flex}>
                 <Text style={styles.nome}>{deck.comandante.nome}</Text>
                 <Text style={styles.muted}>{deck.comandante.tipo}</Text>

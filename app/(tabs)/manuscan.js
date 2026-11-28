@@ -2,7 +2,7 @@ import Head from 'expo-router/head';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Cabecalho from '../../src/components/Cabecalho';
 import BotaoPrimario from '../../src/components/BotaoPrimario';
@@ -17,6 +17,7 @@ import { adicionarCartaNoDeck, deckParaAvaliacao, listarDecks, obterDeck } from 
 import { CONDICOES, adicionarNaColecao } from '../../src/services/colecao';
 import { adicionarDesejo } from '../../src/services/desejos';
 import { theme } from '../../src/theme';
+import ImagemCarta from '../../src/components/ImagemCarta';
 
 const VERDICT = {
   improves: { label: 'MELHORA O DECK', color: theme.colors.greenEnd },
@@ -213,7 +214,7 @@ export default function ManaScan() {
       ) : state === 'result' ? (
         <View style={styles.panel}>
           <Text style={styles.eyebrow}>CARTA IDENTIFICADA</Text>
-          {!!result.image && <Image source={{ uri: result.image }} style={styles.cardImage} resizeMode="contain" accessibilityLabel={result.name} />}
+          {!!result.image && <ImagemCarta uri={result.image} style={styles.cardImage} contentFit="contain" accessibilityLabel={result.name} />}
           <Text style={styles.title}>{result.name}</Text>
           {!!result.typeLine && <Text style={styles.label}>{result.typeLine}</Text>}
           <Text style={styles.label}>{[result.edition, result.priceUsd && `referência Scryfall US$ ${Number(result.priceUsd).toFixed(2)}`].filter(Boolean).join(' · ')}</Text>
@@ -316,6 +317,7 @@ function Scanner({ ativa, onFoto }) {
   const camera = useRef(null);
   const [pronta, setPronta] = useState(false);
   const [capturando, setCapturando] = useState(false);
+  const [quadro, setQuadro] = useState(null);
 
   const capturar = async () => {
     if (!camera.current || capturando) return;
@@ -341,14 +343,52 @@ function Scanner({ ativa, onFoto }) {
   }
   return (
     <View style={{ width: '100%', maxWidth: 360, gap: theme.spacing.md }}>
-      <View style={[styles.frame, styles.frameCamera]}>
+      <View style={[styles.frame, styles.frameCamera]} onLayout={(e) => setQuadro(e.nativeEvent.layout)}>
         {ativa && <CameraView ref={camera} style={StyleSheet.absoluteFill} facing="back" onCameraReady={() => setPronta(true)} />}
-        <View pointerEvents="none" style={styles.mira}>
-          <View style={styles.miraNome} />
-          <Text style={styles.miraTexto}>Enquadre a carta · nome no topo</Text>
-        </View>
+        {quadro && <Mira largura={quadro.width} altura={quadro.height} />}
       </View>
       <BotaoPrimario label={capturando ? 'Capturando…' : 'Capturar carta'} disabled={!pronta || capturando || !ativa} onPress={capturar} />
+    </View>
+  );
+}
+
+// Guia de enquadramento com a proporção real da carta (63 × 88 mm), calculada em pixels a
+// partir do tamanho do quadro: porcentagens dentro de posição absoluta saem diferentes no
+// Android e na web. Escurece o que fica fora da carta e marca a faixa do nome no topo.
+const PROPORCAO_CARTA = 63 / 88;
+
+function Mira({ largura, altura }) {
+  const espacoTexto = 40;
+  const h = Math.min(altura - espacoTexto * 2, (largura * 0.84) / PROPORCAO_CARTA);
+  const w = h * PROPORCAO_CARTA;
+  const x = (largura - w) / 2;
+  const y = (altura - h) / 2;
+  const sombra = 'rgba(0,0,0,0.5)';
+  const canto = Math.min(28, w * 0.12);
+  const cantos = [
+    { top: -2, left: -2, borderTopWidth: 4, borderLeftWidth: 4, borderTopLeftRadius: theme.radius.md },
+    { top: -2, right: -2, borderTopWidth: 4, borderRightWidth: 4, borderTopRightRadius: theme.radius.md },
+    { bottom: -2, left: -2, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: theme.radius.md },
+    { bottom: -2, right: -2, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: theme.radius.md },
+  ];
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <View style={{ position: 'absolute', left: 0, right: 0, top: 0, height: y, backgroundColor: sombra }} />
+      <View style={{ position: 'absolute', left: 0, right: 0, top: y + h, bottom: 0, backgroundColor: sombra }} />
+      <View style={{ position: 'absolute', left: 0, top: y, width: x, height: h, backgroundColor: sombra }} />
+      <View style={{ position: 'absolute', right: 0, top: y, width: x, height: h, backgroundColor: sombra }} />
+
+      <View style={{ position: 'absolute', left: x, top: y, width: w, height: h, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', borderRadius: theme.radius.md }}>
+        {cantos.map((c, i) => <View key={i} style={[{ position: 'absolute', width: canto, height: canto, borderColor: theme.colors.accent }, c]} />)}
+        <View style={[styles.miraNome, { top: h * 0.045, height: h * 0.085 }]} />
+      </View>
+
+      <View style={{ position: 'absolute', left: 0, right: 0, top: 0, height: y, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={styles.miraTexto}>Nome da carta aqui ↓</Text>
+      </View>
+      <View style={{ position: 'absolute', left: 0, right: 0, top: y + h, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={styles.miraTexto}>Enquadre a carta inteira</Text>
+      </View>
     </View>
   );
 }
@@ -357,4 +397,4 @@ function Link({ label, onPress }) {
   return <Pressable accessibilityRole="button" onPress={onPress} style={styles.link}><Text style={styles.linkTexto}>{label}</Text></Pressable>;
 }
 
-const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 960, width: '100%', alignSelf: 'center', padding: theme.spacing.lg }, panel: { gap: theme.spacing.md, width: '100%', maxWidth: 540, alignSelf: 'center', padding: theme.spacing.xl, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, faixa: { gap: theme.spacing.xs, width: '100%', maxWidth: 540, alignSelf: 'center', padding: theme.spacing.md, marginBottom: theme.spacing.md, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.accent }, faixaTexto: { color: theme.colors.text }, loading: { gap: theme.spacing.lg, width: '100%', maxWidth: 540, alignSelf: 'center' }, step: { color: theme.colors.accent, textAlign: 'center' }, scan: { alignItems: 'center' }, frame: { width: '100%', maxWidth: 360, aspectRatio: 5 / 7, alignItems: 'center', justifyContent: 'center', gap: theme.spacing.sm, borderRadius: theme.radius.lg, borderWidth: 2, borderColor: theme.colors.accent, backgroundColor: '#10283a' }, frameText: { color: theme.colors.textMuted, textAlign: 'center' }, frameVazio: { padding: theme.spacing.lg }, frameCamera: { overflow: 'hidden', backgroundColor: '#000' }, mira: { ...StyleSheet.absoluteFillObject, margin: theme.spacing.md, borderWidth: 2, borderColor: 'rgba(255,255,255,0.85)', borderRadius: theme.radius.md, justifyContent: 'space-between', alignItems: 'center', padding: theme.spacing.sm }, miraNome: { width: '100%', height: '12%', borderWidth: 1, borderStyle: 'dashed', borderColor: theme.colors.accent, borderRadius: theme.radius.sm }, miraTexto: { color: '#fff', fontSize: theme.typography.small, backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: theme.spacing.sm, borderRadius: theme.radius.sm }, actions: { width: '100%', maxWidth: 540, gap: theme.spacing.sm, marginTop: theme.spacing.lg }, secao: { gap: theme.spacing.sm, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border }, linha: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }, eyebrow: { color: theme.colors.accent, fontSize: theme.typography.small, fontWeight: theme.typography.weight.bold }, title: { color: theme.colors.text, fontSize: theme.typography.h2, fontWeight: theme.typography.weight.bold }, label: { color: theme.colors.textMuted }, small: { color: theme.colors.textMuted, fontSize: theme.typography.small }, ok: { color: theme.colors.greenEnd }, warn: { color: theme.colors.warning }, input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background, paddingHorizontal: theme.spacing.md }, cardImage: { width: '100%', height: 340, borderRadius: theme.radius.md }, deckOpcao: { padding: theme.spacing.md, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background }, deckOpcaoHover: { backgroundColor: theme.colors.surfaceRaised }, deckNome: { color: theme.colors.text, fontWeight: theme.typography.weight.bold }, evalBox: { gap: theme.spacing.sm, marginTop: theme.spacing.sm }, verdict: { gap: theme.spacing.xs, padding: theme.spacing.md, borderWidth: 2, borderRadius: theme.radius.md, backgroundColor: theme.colors.background }, verdictText: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, link: { minHeight: 36, justifyContent: 'center' }, linkTexto: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold } });
+const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 960, width: '100%', alignSelf: 'center', padding: theme.spacing.lg }, panel: { gap: theme.spacing.md, width: '100%', maxWidth: 540, alignSelf: 'center', padding: theme.spacing.xl, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, faixa: { gap: theme.spacing.xs, width: '100%', maxWidth: 540, alignSelf: 'center', padding: theme.spacing.md, marginBottom: theme.spacing.md, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.accent }, faixaTexto: { color: theme.colors.text }, loading: { gap: theme.spacing.lg, width: '100%', maxWidth: 540, alignSelf: 'center' }, step: { color: theme.colors.accent, textAlign: 'center' }, scan: { alignItems: 'center' }, frame: { width: '100%', maxWidth: 360, aspectRatio: 5 / 7, alignItems: 'center', justifyContent: 'center', gap: theme.spacing.sm, borderRadius: theme.radius.lg, borderWidth: 2, borderColor: theme.colors.accent, backgroundColor: '#10283a' }, frameText: { color: theme.colors.textMuted, textAlign: 'center' }, frameVazio: { padding: theme.spacing.lg }, frameCamera: { overflow: 'hidden', backgroundColor: '#000' }, miraNome: { position: 'absolute', left: '6%', right: '6%', borderWidth: 1, borderColor: theme.colors.accent, borderRadius: theme.radius.sm, backgroundColor: 'rgba(102,192,244,0.12)' }, miraTexto: { color: '#fff', fontSize: theme.typography.small, fontWeight: theme.typography.weight.bold, textAlign: 'center' }, actions: { width: '100%', maxWidth: 540, gap: theme.spacing.sm, marginTop: theme.spacing.lg }, secao: { gap: theme.spacing.sm, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border }, linha: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }, eyebrow: { color: theme.colors.accent, fontSize: theme.typography.small, fontWeight: theme.typography.weight.bold }, title: { color: theme.colors.text, fontSize: theme.typography.h2, fontWeight: theme.typography.weight.bold }, label: { color: theme.colors.textMuted }, small: { color: theme.colors.textMuted, fontSize: theme.typography.small }, ok: { color: theme.colors.greenEnd }, warn: { color: theme.colors.warning }, input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background, paddingHorizontal: theme.spacing.md }, cardImage: { width: '100%', height: 340, borderRadius: theme.radius.md }, deckOpcao: { padding: theme.spacing.md, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background }, deckOpcaoHover: { backgroundColor: theme.colors.surfaceRaised }, deckNome: { color: theme.colors.text, fontWeight: theme.typography.weight.bold }, evalBox: { gap: theme.spacing.sm, marginTop: theme.spacing.sm }, verdict: { gap: theme.spacing.xs, padding: theme.spacing.md, borderWidth: 2, borderRadius: theme.radius.md, backgroundColor: theme.colors.background }, verdictText: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, link: { minHeight: 36, justifyContent: 'center' }, linkTexto: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold } });

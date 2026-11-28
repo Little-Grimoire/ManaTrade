@@ -45,7 +45,8 @@
         {
           "backgroundColor": "#0f1923"
         }
-      ]
+      ],
+      "expo-image"
     ]
   }
 }
