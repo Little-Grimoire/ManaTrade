@@ -1,7 +1,36 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { formatarDistancia } from '../services/lojas';
 import { theme } from '../theme';
 
-export default function Mapa({ stores = [] }) {
-  return <View style={styles.map}><View style={styles.grid}><Text style={styles.marker}>●</Text></View><Text style={styles.text}>{stores.length} lojas nesta região</Text></View>;
+// Na web o react-native-maps não funciona: cada loja abre a localização no OpenStreetMap.
+export default function Mapa({ lojas = [], onSelecionar }) {
+  const comLocal = lojas.filter((l) => l.latitude != null && l.longitude != null);
+  if (!comLocal.length) {
+    return <View style={styles.box}><Text style={styles.muted}>Nenhuma loja com localização cadastrada.</Text></View>;
+  }
+  return (
+    <View style={styles.box}>
+      <Text style={styles.muted}>No navegador o mapa interativo não está disponível. Abra a localização de cada loja:</Text>
+      {comLocal.map((loja) => (
+        <View key={loja.id} style={styles.linha}>
+          <Pressable onPress={() => onSelecionar?.(loja)} style={styles.nome}>
+            <Text style={styles.titulo}>{loja.nome}</Text>
+            {loja.km != null && <Text style={styles.muted}>{formatarDistancia(loja.km)}</Text>}
+          </Pressable>
+          <Pressable accessibilityRole="link" onPress={() => Linking.openURL(`https://www.openstreetmap.org/?mlat=${loja.latitude}&mlon=${loja.longitude}#map=17/${loja.latitude}/${loja.longitude}`)}>
+            <Text style={styles.link}>Ver no mapa ↗</Text>
+          </Pressable>
+        </View>
+      ))}
+    </View>
+  );
 }
-const styles = StyleSheet.create({ map: { height: 260, borderRadius: theme.radius.lg, backgroundColor: '#152638', borderWidth: 1, borderColor: theme.colors.border, overflow: 'hidden', alignItems: 'center', justifyContent: 'flex-end', padding: theme.spacing.lg }, grid: { position: 'absolute', width: '140%', height: '140%', transform: [{ rotate: '-12deg' }], borderWidth: 1, borderColor: '#294259' }, marker: { position: 'absolute', left: '52%', top: '48%', color: theme.colors.accent, fontSize: 28 }, text: { color: theme.colors.text, backgroundColor: theme.colors.surface, padding: theme.spacing.md, borderRadius: theme.radius.sm } });
+
+const styles = StyleSheet.create({
+  box: { gap: theme.spacing.md, padding: theme.spacing.lg, borderRadius: theme.radius.lg, borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+  linha: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border },
+  nome: { flex: 1 },
+  titulo: { color: theme.colors.text, fontWeight: theme.typography.weight.bold },
+  muted: { color: theme.colors.textMuted },
+  link: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold },
+});

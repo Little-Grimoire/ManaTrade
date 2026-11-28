@@ -31,6 +31,12 @@
           "cameraPermission": "O ManaScan usa a câmera para reconhecer suas cartas."
         }
       ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O ManaTrade usa sua localização para ordenar as lojas parceiras pela distância."
+        }
+      ],
       "expo-router",
       "expo-secure-store",
       "expo-status-bar",

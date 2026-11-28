@@ -26,6 +26,16 @@ app.use(express.urlencoded({ extended: false })); // formulários das páginas w
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Saúde do servidor (usada pelo scripts/dev.js para saber se o backend subiu e continua de pé).
+app.get('/api/health', async (req, res) => {
+  try {
+    await require('./models').sequelize.authenticate();
+    res.json({ ok: true });
+  } catch (erro) {
+    res.status(503).json({ ok: false, erro: 'Banco de dados indisponível.' });
+  }
+});
+
 // Rota inexistente da API responde 404 em JSON aqui mesmo (não segue para as páginas).
 app.use('/api', require('./routes/api'), naoEncontrado);
 

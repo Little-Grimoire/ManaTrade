@@ -2,25 +2,34 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import { storage } from '../services/storage';
 import { aoReceber401, definirToken } from '../services/api';
 import * as authApi from '../services/auth';
+import { definirUsuarioCache, limparCacheDoUsuario } from '../services/cacheLocal';
 
 // Sessão: o token JWT fica no armazenamento seguro (SecureStore no celular, localStorage na web).
-// Os dados do usuário (nome, perfil, loja, resumo) sempre vêm da API (/auth/me).
+// Os dados do usuário (nome, perfil, loja, resumo) vêm da API (/auth/me); sem conexão, vêm da
+// última cópia salva no aparelho (cacheLocal), então o app abre mesmo offline.
 const AuthContext = createContext(null);
 const TOKEN_KEY = 'manatrade.token';
+const USUARIO_KEY = 'manatrade.usuarioId'; // de quem é o cache local, para lê-lo antes de falar com o servidor
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Logout ou token inválido: apaga a sessão e os dados salvos deste usuário no aparelho.
   const limparSessao = useCallback(async () => {
     definirToken(null);
     setUser(null);
+    await limparCacheDoUsuario();
+    definirUsuarioCache(null);
     await storage.removeItem(TOKEN_KEY);
+    await storage.removeItem(USUARIO_KEY);
   }, []);
 
   const iniciarSessao = async ({ token, usuario }) => {
     definirToken(token);
+    definirUsuarioCache(usuario.id);
     await storage.setItem(TOKEN_KEY, token);
+    await storage.setItem(USUARIO_KEY, String(usuario.id));
     setUser(usuario);
     return usuario;
   };
@@ -33,13 +42,16 @@ export function AuthProvider({ children }) {
       const token = await storage.getItem(TOKEN_KEY);
       if (token) {
         definirToken(token);
+        definirUsuarioCache(await storage.getItem(USUARIO_KEY));
         try {
+          // Sem conexão, apiRequest devolve o /auth/me salvo no aparelho (se houver).
           const usuario = await authApi.meusDados();
           if (ativo) setUser(usuario);
         } catch (erro) {
-          // 401/403: token vencido ou conta bloqueada -> volta ao login.
-          // Sem conexão (status 0): também volta ao login, mostrando o erro lá ao tentar entrar.
-          await limparSessao();
+          // 401/403: token vencido ou conta bloqueada -> limpa tudo e volta ao login.
+          // Sem conexão e sem cópia local: vai ao login, mas mantém token e cache para a próxima vez.
+          if (erro.status === 0) definirToken(null);
+          else await limparSessao();
         }
       }
       if (ativo) setLoading(false);

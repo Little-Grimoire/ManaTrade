@@ -12,7 +12,7 @@ Ver `definicao_tema.md`.
 
 ## Requisitos funcionais
 - **RF01** Cadastro, login e logout com sessão persistente; telas privadas exigem login.
-- **RF02** Escanear carta pela câmera ou galeria: o backend faz o OCR do nome e a busca aproximada no Scryfall identifica a carta. Se a leitura falhar, o usuário digita o nome.
+- **RF02** Escanear carta pela câmera ou galeria: o serviço de ML (`backend-ml`) faz o OCR do nome e a busca aproximada no Scryfall identifica a carta. Se a leitura falhar, o usuário digita o nome.
 - **RF03** Coleção: adicionar, editar (quantidade, condição) e remover cartas, sem precisar montar um deck.
 - **RF04** Decks: criar, editar e excluir decks Commander (comandante + lista); importar lista colada.
 - **RF05** Avaliar carta no deck: o classificador de ML (TP) devolve a adequação da carta e sugere qual carta remover (regra com margem δ).

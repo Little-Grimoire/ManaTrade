@@ -15,11 +15,17 @@ const ATALHOS = {
     { titulo: 'ManaScan', texto: 'Identificar uma carta e ver se ela melhora o seu deck', rota: '/(tabs)/manuscan' },
     { titulo: 'Coleção', texto: 'Suas cartas: quantidade, condição e foil', rota: '/(tabs)/biblioteca?aba=colecao' },
     { titulo: 'Decks', texto: 'Montar decks Commander, Pauper, Modern…', rota: '/(tabs)/biblioteca?aba=decks' },
+    { titulo: 'Lojas parceiras', texto: 'Lojas perto de você, acervo à venda e consignação', rota: '/lojas' },
+    { titulo: 'Minhas consignações', texto: 'Acompanhar as cartas deixadas para venda', rota: '/consignacoes' },
   ],
   loja: [
+    { titulo: 'Consignações recebidas', texto: 'Aceitar, recusar, colocar à venda e registrar vendas', rota: '/consignacoes' },
+    { titulo: 'Lojas parceiras', texto: 'Ver como sua loja aparece para os jogadores', rota: '/lojas' },
     { titulo: 'Perfil da loja', texto: 'Dados da loja e situação da aprovação', rota: '/(tabs)/perfil' },
   ],
   admin: [
+    { titulo: 'Consignações', texto: 'Todas as consignações da plataforma', rota: '/consignacoes' },
+    { titulo: 'Lojas', texto: 'Lojas cadastradas', rota: '/lojas' },
     { titulo: 'Perfil', texto: 'Resumo da plataforma', rota: '/(tabs)/perfil' },
   ],
 };
@@ -59,7 +65,7 @@ export default function Inicio() {
         <Text style={styles.aviso}>Sua loja aguarda aprovação do administrador. Até lá ela não aparece para os jogadores.</Text>
       )}
       {user.perfil !== 'usuario' && (
-        <Text style={styles.muted}>O painel {user.perfil === 'loja' ? 'da loja (acervo e consignações)' : 'administrativo'} será disponibilizado no site do ManaTrade.</Text>
+        <Text style={styles.muted}>{user.perfil === 'loja' ? 'O acervo e os dados da loja são gerenciados' : 'Aprovação de lojas, usuários e chamados ficam'} no painel web do ManaTrade (backend, porta 3001).</Text>
       )}
 
       <View style={styles.section}>

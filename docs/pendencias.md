@@ -13,15 +13,17 @@
 
 ## Mobile — entrega 30/11
 - [x] ManaScan: identificação (OCR na web, nome digitado no celular) e avaliação no deck
-- [ ] Remover a parte de vários TCGs (`src/mocks/dados.js`, filtros por jogo)
-- [ ] Trocar os dados falsos (lojas, anúncios, consignações) pela API real
+- [x] Remover a parte de vários TCGs (mocks e filtros por jogo) — DA06
+- [x] Trocar os dados falsos pela API real: lojas (com localização e mapa), loja + acervo, consignações (RF07) e notificações (RF10); anúncios, propostas, comunidade e detalhe de carta removidos (fora do PRD)
+- [x] Persistência local (DA07): cache por usuário em AsyncStorage, app abre e consulta offline
 - [x] Autenticação real (RF01): login, cadastro (jogador ou loja), sessão persistente, tela de perfil e configurações ligadas à API
 - [x] Coleção (RF03): adicionar por nome ou ManaScan, editar quantidade/condição/foil, remover
 - [x] Decks (RF04): vários decks em vários formatos, validação, importação de lista e de deck oficial, ManaScan adicionando direto no deck, avaliação de ML nos decks Commander do servidor
-- [ ] Consignação (RF07)
+- [x] Consignação (RF07): jogador consigna pela tela da loja, edita preço, desiste e exclui; loja aceita, recusa, põe à venda, registra venda ou devolução
 - [ ] Sideboard nos formatos de 60 cartas
 - [ ] Scanner pela câmera via `/api/scan` (DA03)
-- [ ] Testar no Expo Go em dispositivo real; tutorial de uso; diário de uso de IA
+- [x] Diário de uso de IA (`docs/diario_ia.md`): equipe completa as entradas marcadas
+- [ ] Testar no Expo Go em dispositivo real; tutorial de uso
 
 ## Web 2
 - [x] Camada de armazenamento: 10 tabelas, 3 N:N, 1:N e 1:1, regras de integridade, seed e testes (`backend/`)
@@ -30,5 +32,5 @@
 - [ ] Testar o schema num PostgreSQL real (até agora só SQLite)
 - [x] `backend/` Express MVC: views EJS + controllers com CRUD de todas as tabelas, 3 perfis, permissões por middleware (`autorizar`, `carregar`)
 - [x] API REST com JWT e CRUD de todas as tabelas; documentação OpenAPI em `/api/docs`
-- [ ] App: esconder a aba Biblioteca para loja/admin (coleção/decks/desejos agora respondem 403 para esses perfis)
+- [x] App: abas Biblioteca e Desejos escondidas para loja/admin
 - [ ] Publicar na web
