@@ -10,7 +10,7 @@
     <p><strong>Identidade de cor:</strong> <%= carta.identidade_cor || 'incolor' %></p>
     <p><strong>Edição:</strong> <%= carta.edicao || '—' %> <%= carta.codigo_edicao ? `(${carta.codigo_edicao.toUpperCase()} #${carta.numero_colecionador})` : '' %></p>
     <p><strong>Raridade:</strong> <%= carta.raridade || '—' %></p>
-    <p><strong>Preço de referência:</strong> <%= moeda(carta.preco_usd, 'US$') %></p>
+    <p><strong>Preço de referência:</strong> <%= moeda(carta.preco_brl) %></p>
     <% if (carta.legalidades) { %>
       <p><strong>Legal em:</strong>
         <%= Object.entries(carta.legalidades).filter(([, s]) => s === 'legal').map(([f]) => f).filter((f) => ['commander', 'pauper', 'standard', 'pioneer', 'modern', 'legacy', 'vintage'].includes(f)).join(', ') || '—' %>
@@ -32,7 +32,7 @@
       <label>Valor de mana <input type="number" step="0.5" name="cmc" value="<%= carta.cmc ?? '' %>"></label>
       <label>Identidade de cor (WUBRG) <input name="identidade_cor" value="<%= carta.identidade_cor %>"></label>
       <label>Raridade <input name="raridade" value="<%= carta.raridade || '' %>"></label>
-      <label>Preço ref. (US$) <input type="number" step="0.01" name="preco_usd" value="<%= carta.preco_usd ?? '' %>"></label>
+      <label>Preço ref. (R$) <input type="number" step="0.01" min="0" name="preco_brl" value="<%= carta.preco_brl ?? '' %>"></label>
       <label class="largo">URL da imagem <input name="imagem_url" value="<%= carta.imagem_url || '' %>"></label>
       <button>Salvar</button>
     </form>

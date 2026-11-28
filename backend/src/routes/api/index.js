@@ -11,6 +11,8 @@ router.get('/docs.json', (req, res) => res.json(especificacao));
 router.use('/docs', swaggerUi.serve, swaggerUi.setup(especificacao, { customSiteTitle: 'ManaTrade API' }));
 
 router.get('/saude', (req, res) => res.json({ status: 'ok' }));
+// Cotação do dólar usada para mostrar os preços do Scryfall em reais (pública).
+router.get('/cotacao', (req, res) => res.json(require('../../services/cotacao').atual()));
 router.use('/auth', require('./auth'));
 router.use('/colecao', require('./colecao'));
 router.use('/desejos', require('./desejos'));

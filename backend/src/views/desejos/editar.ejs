@@ -9,7 +9,7 @@
         <% for (const p of PRIORIDADES) { %><option value="<%= p %>" <%= p === desejo.prioridade ? 'selected' : '' %>><%= p %></option><% } %>
       </select>
     </label>
-    <label>Pago até (US$) <input type="number" name="preco_maximo_usd" step="0.01" min="0" value="<%= desejo.preco_maximo_usd ?? '' %>"></label>
+    <label>Pago até (R$) <input type="number" name="preco_maximo_brl" step="0.01" min="0" value="<%= desejo.preco_maximo_brl ?? '' %>"></label>
     <label class="largo">Observação <input name="observacao" value="<%= desejo.observacao || '' %>"></label>
     <button>Salvar</button>
   </form>

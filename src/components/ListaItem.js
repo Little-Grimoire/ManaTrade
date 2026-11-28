@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Tipografia';
 import { theme } from '../theme';
 
 export default function ListaItem({ title, subtitle, meta, onPress, leading }) { return <Pressable accessibilityRole="button" onPress={onPress} style={({ hovered, pressed }) => [styles.row, hovered && styles.hover, pressed && styles.pressed]}>{leading && <View style={styles.leading}>{leading}</View>}<View style={styles.copy}><Text style={styles.title}>{title}</Text>{!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}</View>{!!meta && <Text style={styles.meta}>{meta}</Text>}</Pressable>; }

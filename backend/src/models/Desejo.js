@@ -17,8 +17,8 @@ module.exports = (sequelize) => {
       defaultValue: 'media',
       validate: { isIn: { args: [PRIORIDADES], msg: 'Prioridade inválida. Use: baixa, media ou alta.' } },
     },
-    // Quanto o usuário aceita pagar (em US$, para comparar com o preço de referência do Scryfall).
-    preco_maximo_usd: {
+    // Quanto o usuário aceita pagar, em R$ (comparado com carta.preco_brl).
+    preco_maximo_brl: {
       type: DataTypes.DECIMAL(10, 2),
       validate: { min: { args: [0], msg: 'O preço máximo não pode ser negativo.' } },
     },

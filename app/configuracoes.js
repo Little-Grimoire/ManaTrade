@@ -1,6 +1,7 @@
 import Head from 'expo-router/head';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../src/components/Tipografia';
 import Cabecalho from '../src/components/Cabecalho';
 import BotaoPrimario from '../src/components/BotaoPrimario';
 import { useAuth } from '../src/contexts/AuthContext';
@@ -73,4 +74,4 @@ export default function Configuracoes() {
   );
 }
 
-const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 760, width: '100%', alignSelf: 'center', padding: theme.spacing.lg, gap: theme.spacing.lg }, section: { gap: theme.spacing.md, padding: theme.spacing.lg, borderRadius: theme.radius.md, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, title: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, muted: { color: theme.colors.textMuted, fontSize: theme.typography.small }, label: { color: theme.colors.textMuted, fontSize: theme.typography.small, marginBottom: theme.spacing.xs }, input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background, paddingHorizontal: theme.spacing.md } });
+const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 760, width: '100%', alignSelf: 'center', padding: theme.spacing.lg, gap: theme.spacing.lg }, section: { gap: theme.spacing.md, padding: theme.spacing.lg, borderRadius: theme.radius.md, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, title: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, muted: { color: theme.colors.textMuted, fontSize: theme.typography.small }, label: { color: theme.colors.textMuted, fontSize: theme.typography.small, marginBottom: theme.spacing.xs }, input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.input, paddingHorizontal: theme.spacing.md } });

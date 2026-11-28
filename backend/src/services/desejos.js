@@ -4,7 +4,7 @@ const { obterCarta } = require('./cartas');
 const HttpError = require('../utils/HttpError');
 const { escolher, exigirAlgum } = require('../utils/campos');
 
-const CAMPOS = ['prioridade', 'preco_maximo_usd', 'observacao'];
+const CAMPOS = ['prioridade', 'preco_maximo_brl', 'observacao'];
 const incluirCarta = { model: Carta, as: 'carta' };
 
 const listar = (usuario) => Desejo.findAll({
@@ -13,7 +13,7 @@ const listar = (usuario) => Desejo.findAll({
   order: [['created_at', 'DESC']],
 });
 
-// dados: { carta_id | scryfall_id | nome, prioridade?, preco_maximo_usd?, observacao? }
+// dados: { carta_id | scryfall_id | nome, prioridade?, preco_maximo_brl?, observacao? }
 async function criar(usuario, dados = {}) {
   const carta = await obterCarta(dados);
   const existente = await Desejo.findOne({ where: { usuario_id: usuario.id, carta_id: carta.id } });

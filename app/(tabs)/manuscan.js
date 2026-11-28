@@ -2,7 +2,8 @@ import Head from 'expo-router/head';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../../src/components/Tipografia';
 import * as ImagePicker from 'expo-image-picker';
 import Cabecalho from '../../src/components/Cabecalho';
 import BotaoPrimario from '../../src/components/BotaoPrimario';
@@ -18,6 +19,7 @@ import { CONDICOES, adicionarNaColecao } from '../../src/services/colecao';
 import { adicionarDesejo } from '../../src/services/desejos';
 import { theme } from '../../src/theme';
 import ImagemCarta from '../../src/components/ImagemCarta';
+import { dolarParaReais, reais } from '../../src/services/moeda';
 
 const VERDICT = {
   improves: { label: 'MELHORA O DECK', color: theme.colors.greenEnd },
@@ -87,6 +89,8 @@ export default function ManaScan() {
 
   const showCard = (card, outras = []) => {
     setResult(card); // { id, name, edition, image, typeLine, colorIdentity, priceUsd, mlData }
+    // O Scryfall só dá o preço em US$; converte pela cotação do backend para mostrar em R$.
+    dolarParaReais(card.priceUsd).then((brl) => setResult((r) => (r && r.id === card.id ? { ...r, priceBrl: brl } : r)));
     setAlternativas(outras);
     setCondicao('NM'); setFoil(false); setAviso(null); setEscolha(null); setEvaluation(null);
     setState('result');
@@ -217,7 +221,7 @@ export default function ManaScan() {
           {!!result.image && <ImagemCarta uri={result.image} style={styles.cardImage} contentFit="contain" accessibilityLabel={result.name} />}
           <Text style={styles.title}>{result.name}</Text>
           {!!result.typeLine && <Text style={styles.label}>{result.typeLine}</Text>}
-          <Text style={styles.label}>{[result.edition, result.priceUsd && `referência Scryfall US$ ${Number(result.priceUsd).toFixed(2)}`].filter(Boolean).join(' · ')}</Text>
+          <Text style={styles.label}>{[result.edition, result.priceBrl != null && `referência Scryfall ${reais(result.priceBrl)}`].filter(Boolean).join(' · ')}</Text>
           {!!alternativas.length && (
             <View style={styles.linha}>
               <Text style={styles.small}>Não é essa?</Text>
@@ -379,7 +383,7 @@ function Mira({ largura, altura }) {
       <View style={{ position: 'absolute', right: 0, top: y, width: x, height: h, backgroundColor: sombra }} />
 
       <View style={{ position: 'absolute', left: x, top: y, width: w, height: h, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', borderRadius: theme.radius.md }}>
-        {cantos.map((c, i) => <View key={i} style={[{ position: 'absolute', width: canto, height: canto, borderColor: theme.colors.accent }, c]} />)}
+        {cantos.map((c, i) => <View key={i} style={[{ position: 'absolute', width: canto, height: canto, borderColor: theme.colors.goldBright }, c]} />)}
         <View style={[styles.miraNome, { top: h * 0.045, height: h * 0.085 }]} />
       </View>
 
@@ -397,4 +401,4 @@ function Link({ label, onPress }) {
   return <Pressable accessibilityRole="button" onPress={onPress} style={styles.link}><Text style={styles.linkTexto}>{label}</Text></Pressable>;
 }
 
-const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 960, width: '100%', alignSelf: 'center', padding: theme.spacing.lg }, panel: { gap: theme.spacing.md, width: '100%', maxWidth: 540, alignSelf: 'center', padding: theme.spacing.xl, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, faixa: { gap: theme.spacing.xs, width: '100%', maxWidth: 540, alignSelf: 'center', padding: theme.spacing.md, marginBottom: theme.spacing.md, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.accent }, faixaTexto: { color: theme.colors.text }, loading: { gap: theme.spacing.lg, width: '100%', maxWidth: 540, alignSelf: 'center' }, step: { color: theme.colors.accent, textAlign: 'center' }, scan: { alignItems: 'center' }, frame: { width: '100%', maxWidth: 360, aspectRatio: 5 / 7, alignItems: 'center', justifyContent: 'center', gap: theme.spacing.sm, borderRadius: theme.radius.lg, borderWidth: 2, borderColor: theme.colors.accent, backgroundColor: '#10283a' }, frameText: { color: theme.colors.textMuted, textAlign: 'center' }, frameVazio: { padding: theme.spacing.lg }, frameCamera: { overflow: 'hidden', backgroundColor: '#000' }, miraNome: { position: 'absolute', left: '6%', right: '6%', borderWidth: 1, borderColor: theme.colors.accent, borderRadius: theme.radius.sm, backgroundColor: 'rgba(102,192,244,0.12)' }, miraTexto: { color: '#fff', fontSize: theme.typography.small, fontWeight: theme.typography.weight.bold, textAlign: 'center' }, actions: { width: '100%', maxWidth: 540, gap: theme.spacing.sm, marginTop: theme.spacing.lg }, secao: { gap: theme.spacing.sm, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border }, linha: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }, eyebrow: { color: theme.colors.accent, fontSize: theme.typography.small, fontWeight: theme.typography.weight.bold }, title: { color: theme.colors.text, fontSize: theme.typography.h2, fontWeight: theme.typography.weight.bold }, label: { color: theme.colors.textMuted }, small: { color: theme.colors.textMuted, fontSize: theme.typography.small }, ok: { color: theme.colors.greenEnd }, warn: { color: theme.colors.warning }, input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background, paddingHorizontal: theme.spacing.md }, cardImage: { width: '100%', height: 340, borderRadius: theme.radius.md }, deckOpcao: { padding: theme.spacing.md, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background }, deckOpcaoHover: { backgroundColor: theme.colors.surfaceRaised }, deckNome: { color: theme.colors.text, fontWeight: theme.typography.weight.bold }, evalBox: { gap: theme.spacing.sm, marginTop: theme.spacing.sm }, verdict: { gap: theme.spacing.xs, padding: theme.spacing.md, borderWidth: 2, borderRadius: theme.radius.md, backgroundColor: theme.colors.background }, verdictText: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, link: { minHeight: 36, justifyContent: 'center' }, linkTexto: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold } });
+const styles = StyleSheet.create({ page: { flexGrow: 1, maxWidth: 960, width: '100%', alignSelf: 'center', padding: theme.spacing.lg }, panel: { gap: theme.spacing.md, width: '100%', maxWidth: 540, alignSelf: 'center', padding: theme.spacing.xl, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, faixa: { gap: theme.spacing.xs, width: '100%', maxWidth: 540, alignSelf: 'center', padding: theme.spacing.md, marginBottom: theme.spacing.md, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.colors.accent }, faixaTexto: { color: theme.colors.text }, loading: { gap: theme.spacing.lg, width: '100%', maxWidth: 540, alignSelf: 'center' }, step: { color: theme.colors.accent, textAlign: 'center' }, scan: { alignItems: 'center' }, frame: { width: '100%', maxWidth: 360, aspectRatio: 5 / 7, alignItems: 'center', justifyContent: 'center', gap: theme.spacing.sm, borderRadius: theme.radius.lg, borderWidth: 2, borderColor: theme.colors.accent, backgroundColor: theme.colors.surfaceRaised }, frameText: { color: theme.colors.textMuted, textAlign: 'center' }, frameVazio: { padding: theme.spacing.lg }, frameCamera: { overflow: 'hidden', backgroundColor: '#000' }, miraNome: { position: 'absolute', left: '6%', right: '6%', borderWidth: 1, borderColor: theme.colors.goldBright, borderRadius: theme.radius.sm, backgroundColor: 'rgba(227,162,59,0.15)' }, miraTexto: { color: '#fff', fontSize: theme.typography.small, fontWeight: theme.typography.weight.bold, textAlign: 'center' }, actions: { width: '100%', maxWidth: 540, gap: theme.spacing.sm, marginTop: theme.spacing.lg }, secao: { gap: theme.spacing.sm, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border }, linha: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }, eyebrow: { color: theme.colors.accent, fontSize: theme.typography.small, fontWeight: theme.typography.weight.bold }, title: { color: theme.colors.text, fontSize: theme.typography.h2, fontWeight: theme.typography.weight.bold }, label: { color: theme.colors.textMuted }, small: { color: theme.colors.textMuted, fontSize: theme.typography.small }, ok: { color: theme.colors.greenEnd }, warn: { color: theme.colors.warning }, input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.input, paddingHorizontal: theme.spacing.md }, cardImage: { width: '100%', height: 340, borderRadius: theme.radius.md }, deckOpcao: { padding: theme.spacing.md, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background }, deckOpcaoHover: { backgroundColor: theme.colors.surfaceRaised }, deckNome: { color: theme.colors.text, fontWeight: theme.typography.weight.bold }, evalBox: { gap: theme.spacing.sm, marginTop: theme.spacing.sm }, verdict: { gap: theme.spacing.xs, padding: theme.spacing.md, borderWidth: 2, borderRadius: theme.radius.md, backgroundColor: theme.colors.background }, verdictText: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, link: { minHeight: 36, justifyContent: 'center' }, linkTexto: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold } });

@@ -76,13 +76,13 @@ async function semear() {
 
     // Lista de desejos do jogador (N:N Usuário ↔ Carta).
     const desejos = [
-      ['Swords to Plowshares', 'alta', 2.5, null],
+      ['Swords to Plowshares', 'alta', 15, null],
       ['Cultivate', 'baixa', null, 'Qualquer edição'],
-      ['Eternal Witness', 'media', 3, null],
+      ['Eternal Witness', 'media', 20, null],
     ];
     for (const [nome, prioridade, preco, observacao] of desejos) {
       if (carta[nome]) {
-        await Desejo.create({ usuario_id: jogador.id, carta_id: carta[nome].id, prioridade, preco_maximo_usd: preco, observacao }, t);
+        await Desejo.create({ usuario_id: jogador.id, carta_id: carta[nome].id, prioridade, preco_maximo_brl: preco, observacao }, t);
       }
     }
 

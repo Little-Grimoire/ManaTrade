@@ -10,7 +10,7 @@
         <% for (const p of PRIORIDADES) { %><option value="<%= p %>" <%= p === 'media' ? 'selected' : '' %>><%= p %></option><% } %>
       </select>
     </label>
-    <label>Pago até (US$) <input type="number" name="preco_maximo_usd" step="0.01" min="0"></label>
+    <label>Pago até (R$) <input type="number" name="preco_maximo_brl" step="0.01" min="0"></label>
     <label class="largo">Observação <input name="observacao"></label>
     <button>Adicionar</button>
   </form>
@@ -26,8 +26,8 @@
         <tr>
           <td><a href="/cartas/<%= d.carta.id %>"><%= d.carta.nome %></a></td>
           <td><span class="selo <%= d.prioridade === 'alta' ? 'erro' : '' %>"><%= d.prioridade %></span></td>
-          <td><%= moeda(d.preco_maximo_usd, 'US$') %></td>
-          <td><%= moeda(d.carta.preco_usd, 'US$') %></td>
+          <td><%= moeda(d.preco_maximo_brl) %></td>
+          <td><%= moeda(d.carta.preco_brl) %></td>
           <td><%= d.observacao || '' %></td>
           <td class="acoes">
             <a class="botao secundario" href="/desejos/<%= d.id %>">Editar</a>

@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const { Carta } = require('../models');
 const { escolher, exigirAlgum } = require('../utils/campos');
 const HttpError = require('../utils/HttpError');
+const cotacao = require('./cotacao');
 
 const SCRYFALL = 'https://api.scryfall.com';
 const LOTE_SCRYFALL = 75; // máximo de cartas por chamada de /cards/collection
@@ -96,7 +97,8 @@ async function completarDetalhes(cartas) {
 // ---------- Catálogo (tabela cartas) ----------
 
 // Campos que o admin pode corrigir à mão. scryfall_id/oracle_id identificam a carta e não mudam.
-const CAMPOS_EDITAVEIS = ['nome', 'edicao', 'codigo_edicao', 'numero_colecionador', 'tipo', 'custo_mana', 'cmc', 'identidade_cor', 'raridade', 'imagem_url', 'preco_usd'];
+// O preço é informado em reais (preco_brl) e guardado em dólar, como vem do Scryfall.
+const CAMPOS_EDITAVEIS = ['nome', 'edicao', 'codigo_edicao', 'numero_colecionador', 'tipo', 'custo_mana', 'cmc', 'identidade_cor', 'raridade', 'imagem_url', 'preco_brl'];
 
 // Busca no cache local por nome (qualquer usuário logado), paginada.
 function listarCartas({ busca, limite = 50, pagina = 1 } = {}) {
@@ -107,7 +109,14 @@ function listarCartas({ busca, limite = 50, pagina = 1 } = {}) {
 }
 
 async function atualizarCarta(carta, dados) {
-  await carta.update(exigirAlgum(escolher(dados, CAMPOS_EDITAVEIS), CAMPOS_EDITAVEIS));
+  const campos = exigirAlgum(escolher(dados, CAMPOS_EDITAVEIS), CAMPOS_EDITAVEIS);
+  if ('preco_brl' in campos) {
+    const brl = campos.preco_brl === null ? null : Number(String(campos.preco_brl).replace(',', '.'));
+    if (brl !== null && !(brl >= 0)) throw new HttpError(400, 'Preço inválido.');
+    campos.preco_usd = cotacao.paraDolares(brl);
+    delete campos.preco_brl;
+  }
+  await carta.update(campos);
   return carta;
 }
 

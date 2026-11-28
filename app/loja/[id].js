@@ -1,7 +1,8 @@
 import Head from 'expo-router/head';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../../src/components/Tipografia';
 import Cabecalho from '../../src/components/Cabecalho';
 import BotaoPrimario from '../../src/components/BotaoPrimario';
 import BotaoSecundario from '../../src/components/BotaoSecundario';
@@ -14,8 +15,8 @@ import { acervoDaLoja, enderecoDaLoja, obterLoja } from '../../src/services/loja
 import { listarColecao } from '../../src/services/colecao';
 import { criarConsignacao } from '../../src/services/consignacoes';
 import { theme } from '../../src/theme';
+import { reais } from '../../src/services/moeda';
 
-const reais = (v) => `R$ ${Number(v).toFixed(2).replace('.', ',')}`;
 
 // Loja (parâmetros: id e, se a lista calculou, a distância). Mostra o acervo e permite consignar.
 export default function LojaDetalhe() {
@@ -116,7 +117,7 @@ function FormConsignacao({ loja, onCancelar }) {
         {itens.map((i) => (
           <Pressable key={i.id} onPress={() => { setItem(i); setQuantidade('1'); }} style={[styles.opcao, item?.id === i.id && styles.opcaoAtiva]}>
             <Text style={styles.opcaoNome}>{i.carta?.nome}</Text>
-            <Text style={styles.opcaoMeta}>{[i.condicao, i.foil ? 'Foil' : null, `${i.quantidade}x`, i.carta?.preco_usd ? `ref. US$ ${i.carta.preco_usd}` : null].filter(Boolean).join(' · ')}</Text>
+            <Text style={styles.opcaoMeta}>{[i.condicao, i.foil ? 'Foil' : null, `${i.quantidade}x`, i.carta?.preco_brl != null ? `ref. ${reais(i.carta.preco_brl)}` : null].filter(Boolean).join(' · ')}</Text>
           </Pressable>
         ))}
       </View>
@@ -156,7 +157,7 @@ const styles = StyleSheet.create({
   opcaoMeta: { color: theme.colors.textMuted, fontSize: theme.typography.small },
   linha: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.md },
   campo: { flex: 1, minWidth: 130, gap: theme.spacing.xs },
-  input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background, paddingHorizontal: theme.spacing.md },
+  input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.input, paddingHorizontal: theme.spacing.md },
   multiline: { minHeight: 72, paddingTop: theme.spacing.sm, textAlignVertical: 'top' },
   erro: { color: theme.colors.danger },
 });

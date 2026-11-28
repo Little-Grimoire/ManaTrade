@@ -27,7 +27,7 @@
           <td><%= item.quantidade %></td>
           <td><%= item.condicao %></td>
           <td><%= item.foil ? 'Sim' : 'Não' %></td>
-          <td><%= moeda(item.carta.preco_usd, 'US$') %></td>
+          <td><%= moeda(item.carta.preco_brl) %></td>
           <td class="acoes">
             <a class="botao secundario" href="/colecao/<%= item.id %>">Editar</a>
             <%- include('../partials/excluir', { acao: `/colecao/${item.id}`, texto: 'Remover', pergunta: 'Remover este item da coleção?' }) %>

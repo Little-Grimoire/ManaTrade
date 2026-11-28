@@ -1,4 +1,5 @@
 const { DataTypes, Model } = require('sequelize');
+const cotacao = require('../services/cotacao');
 
 // Cache local de cartas do Scryfall: guardamos só o que o sistema usa + o scryfall_id.
 // Cada linha é uma impressão (edição) específica da carta.
@@ -64,8 +65,13 @@ module.exports = (sequelize) => {
     },
     raridade: { type: DataTypes.STRING(20) },
     imagem_url: { type: DataTypes.STRING(500) },
-    // Preço de referência do Scryfall (só exibição; não há precificação automática).
+    // Preço de referência do Scryfall, que só informa em US$ (só exibição; não há precificação automática).
     preco_usd: { type: DataTypes.DECIMAL(10, 2) },
+    // O mesmo preço em reais, pela cotação do dia (services/cotacao.js). Não é gravado no banco.
+    preco_brl: {
+      type: DataTypes.VIRTUAL,
+      get() { return cotacao.paraReais(this.getDataValue('preco_usd')); },
+    },
     // Legalidade por formato, como vem do Scryfall: { commander: 'legal', pauper: 'not_legal', ... }
     legalidades: { type: DataTypes.JSON },
   }, {

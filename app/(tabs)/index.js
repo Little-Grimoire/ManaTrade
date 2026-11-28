@@ -1,7 +1,8 @@
 import Head from 'expo-router/head';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '../../src/components/Tipografia';
 import Cabecalho from '../../src/components/Cabecalho';
 import ListaItem from '../../src/components/ListaItem';
 import { useAuth } from '../../src/contexts/AuthContext';

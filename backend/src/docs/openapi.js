@@ -141,7 +141,7 @@ Todas as permissões são verificadas por middleware: \`autenticar\` (token), \`
           nome: { type: 'string', example: 'Lightning Bolt' }, edicao: { type: 'string' }, codigo_edicao: { type: 'string' }, numero_colecionador: { type: 'string' },
           tipo: { type: 'string' }, custo_mana: { type: 'string', example: '{R}' }, cmc: { type: 'string', example: '1.0' },
           identidade_cor: { type: 'string', example: 'R' }, raridade: { type: 'string' }, imagem_url: { type: 'string' },
-          preco_usd: { type: 'string', nullable: true }, legalidades: { type: 'object', additionalProperties: { type: 'string' } },
+          preco_brl: { type: 'number', nullable: true, description: 'Preço de referência do Scryfall convertido para reais pela cotação do dia.' }, legalidades: { type: 'object', additionalProperties: { type: 'string' } },
           ...timestamps,
         },
       },
@@ -156,7 +156,7 @@ Todas as permissões são verificadas por middleware: \`autenticar\` (token), \`
         type: 'object',
         properties: {
           id: { type: 'integer' }, usuario_id: { type: 'integer' }, carta_id: { type: 'integer' },
-          prioridade: { type: 'string', enum: ['baixa', 'media', 'alta'] }, preco_maximo_usd: { type: 'string', nullable: true },
+          prioridade: { type: 'string', enum: ['baixa', 'media', 'alta'] }, preco_maximo_brl: { type: 'string', nullable: true },
           observacao: { type: 'string', nullable: true }, carta: ref('Carta'), ...timestamps,
         },
       },
@@ -391,7 +391,7 @@ Todas as permissões são verificadas por middleware: \`autenticar\` (token), \`
         descricao: '`scryfall_id` e `oracle_id` não são editáveis.',
         body: corpo({
           type: 'object',
-          properties: Object.fromEntries(['nome', 'edicao', 'codigo_edicao', 'numero_colecionador', 'tipo', 'custo_mana', 'cmc', 'identidade_cor', 'raridade', 'imagem_url', 'preco_usd'].map((c) => [c, { type: 'string' }])),
+          properties: Object.fromEntries(['nome', 'edicao', 'codigo_edicao', 'numero_colecionador', 'tipo', 'custo_mana', 'cmc', 'identidade_cor', 'raridade', 'imagem_url', 'preco_brl'].map((c) => [c, { type: 'string' }])),
         }),
         respostas: { 200: ok('Atualizada.', ref('Carta')), 400: R[400], 401: R[401], 403: R[403], 404: R[404] },
       }),
@@ -429,7 +429,7 @@ Todas as permissões são verificadas por middleware: \`autenticar\` (token), \`
       post: op('Desejos', 'Adicionar carta à lista', {
         perfis: 'usuario',
         descricao: NOTA_CARTA,
-        body: corpo({ type: 'object', properties: { ...refCarta, prioridade: { type: 'string', enum: ['baixa', 'media', 'alta'] }, preco_maximo_usd: { type: 'number' }, observacao: { type: 'string' } } }),
+        body: corpo({ type: 'object', properties: { ...refCarta, prioridade: { type: 'string', enum: ['baixa', 'media', 'alta'] }, preco_maximo_brl: { type: 'number' }, observacao: { type: 'string' } } }),
         respostas: { 201: criado('Desejo'), 400: R[400], 401: R[401], 403: R[403], 404: R[404], 409: erro('A carta já está na lista.'), 502: R[502] },
       }),
     },
@@ -438,7 +438,7 @@ Todas as permissões são verificadas por middleware: \`autenticar\` (token), \`
       get: op('Desejos', 'Ver desejo', { perfis: 'usuario (dono)', respostas: { 200: ok('Desejo.', ref('Desejo')), 401: R[401], 403: R[403], 404: R[404] } }),
       patch: op('Desejos', 'Alterar desejo', {
         perfis: 'usuario (dono)',
-        body: corpo({ type: 'object', properties: { prioridade: { type: 'string', enum: ['baixa', 'media', 'alta'] }, preco_maximo_usd: { type: 'number' }, observacao: { type: 'string' } } }),
+        body: corpo({ type: 'object', properties: { prioridade: { type: 'string', enum: ['baixa', 'media', 'alta'] }, preco_maximo_brl: { type: 'number' }, observacao: { type: 'string' } } }),
         respostas: { 200: ok('Atualizado.', ref('Desejo')), 400: R[400], 401: R[401], 403: R[403], 404: R[404] },
       }),
       delete: op('Desejos', 'Remover desejo', { perfis: 'usuario (dono)', respostas: { 204: semConteudo, 401: R[401], 403: R[403], 404: R[404] } }),
@@ -626,6 +626,9 @@ Todas as permissões são verificadas por middleware: \`autenticar\` (token), \`
 
     '/api/saude': {
       get: op('Autenticação', 'Verificar se a API está no ar', { publico: true, respostas: { 200: ok('OK.', { type: 'object', properties: { status: { type: 'string', example: 'ok' } } }) } }),
+    },
+    '/api/cotacao': {
+      get: op('Cartas', 'Cotação do dólar usada para converter os preços do Scryfall para reais', { publico: true, respostas: { 200: ok('Cotação atual.', { type: 'object', properties: { usd_brl: { type: 'number', example: 5.56 }, atualizada_em: { type: 'string', format: 'date-time', nullable: true } } }) } }),
     },
   },
 };

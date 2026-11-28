@@ -1,7 +1,8 @@
 import Head from 'expo-router/head';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Tipografia';
 import { Ionicons } from '@expo/vector-icons';
 import Cabecalho from '../src/components/Cabecalho';
 import EstadoErro from '../src/components/EstadoErro';

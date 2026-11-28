@@ -1,7 +1,8 @@
 import Head from 'expo-router/head';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '../src/components/Tipografia';
 import * as Location from 'expo-location';
 import Mapa from '../src/components/Mapa';
 import Cabecalho from '../src/components/Cabecalho';

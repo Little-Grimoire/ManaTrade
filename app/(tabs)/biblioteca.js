@@ -1,7 +1,8 @@
 import Head from 'expo-router/head';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../../src/components/Tipografia';
 import Cabecalho from '../../src/components/Cabecalho';
 import BotaoPrimario from '../../src/components/BotaoPrimario';
 import ChipFiltro from '../../src/components/ChipFiltro';
@@ -15,8 +16,8 @@ import { listarDecks } from '../../src/services/decks';
 import { useBreakpoint } from '../../src/hooks/useBreakpoint';
 import { theme } from '../../src/theme';
 import ImagemCarta from '../../src/components/ImagemCarta';
+import { reais } from '../../src/services/moeda';
 
-const usd = (v) => `US$ ${Number(v).toFixed(2)}`;
 
 export default function Biblioteca() {
   const params = useLocalSearchParams();
@@ -87,15 +88,15 @@ function Colecao() {
   if (status === 'error') return <EstadoErro texto={erro} onRetry={() => { setStatus('loading'); load(); }} />;
 
   const totalCartas = itens.reduce((s, i) => s + i.quantidade, 0);
-  const valor = itens.reduce((s, i) => s + (Number(i.carta.preco_usd) || 0) * i.quantidade, 0);
+  const valor = itens.reduce((s, i) => s + (Number(i.carta.preco_brl) || 0) * i.quantidade, 0);
   const filtro = busca.trim().toLowerCase();
   const visiveis = itens
     .filter((i) => !filtro || i.carta.nome.toLowerCase().includes(filtro))
-    .sort((a, b) => (ordem === 'preco' ? (Number(b.carta.preco_usd) || 0) - (Number(a.carta.preco_usd) || 0) : a.carta.nome.localeCompare(b.carta.nome)));
+    .sort((a, b) => (ordem === 'preco' ? (Number(b.carta.preco_brl) || 0) - (Number(a.carta.preco_brl) || 0) : a.carta.nome.localeCompare(b.carta.nome)));
 
   return (
     <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled" refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} tintColor={theme.colors.accent} />}>
-      <Cabecalho title="Coleção" subtitle={totalCartas ? `${totalCartas} ${totalCartas === 1 ? 'carta' : 'cartas'} · referência Scryfall ${usd(valor)}` : 'Suas cartas'} />
+      <Cabecalho title="Coleção" subtitle={totalCartas ? `${totalCartas} ${totalCartas === 1 ? 'carta' : 'cartas'} · referência Scryfall ${reais(valor)}` : 'Suas cartas'} />
 
       <View style={styles.box}>
         <Text style={styles.boxTitle}>Adicionar carta</Text>
@@ -127,7 +128,7 @@ function Colecao() {
                 <View style={styles.flex}>
                   <Text style={styles.nome}>{item.quantidade}× {item.carta.nome}</Text>
                   <Text style={styles.muted}>{[item.carta.edicao, item.condicao, item.foil && 'Foil'].filter(Boolean).join(' · ')}</Text>
-                  {item.carta.preco_usd != null && <Text style={styles.preco}>{usd(item.carta.preco_usd)}</Text>}
+                  {item.carta.preco_brl != null && <Text style={styles.preco}>{reais(item.carta.preco_brl)}</Text>}
                   {!!item.observacao && <Text style={styles.obs}>{item.observacao}</Text>}
                 </View>
               </Pressable>
@@ -187,4 +188,4 @@ function Decks() {
   );
 }
 
-const styles = StyleSheet.create({ wrap: { flex: 1 }, wide: { paddingLeft: 118 }, abas: { flexDirection: 'row', gap: theme.spacing.sm, paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.lg, maxWidth: 960, width: '100%', alignSelf: 'center' }, page: { flexGrow: 1, maxWidth: 960, alignSelf: 'center', width: '100%', padding: theme.spacing.lg, gap: theme.spacing.md }, box: { gap: theme.spacing.sm, padding: theme.spacing.lg, borderRadius: theme.radius.md, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, boxTitle: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background, paddingHorizontal: theme.spacing.md }, linha: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: theme.spacing.sm }, flex: { flex: 1 }, secundario: { minHeight: 48, justifyContent: 'center', paddingHorizontal: theme.spacing.lg, borderRadius: theme.radius.sm, borderWidth: 1, borderColor: theme.colors.border }, secundarioTexto: { color: theme.colors.text, fontWeight: theme.typography.weight.bold }, item: { gap: theme.spacing.sm, padding: theme.spacing.md, borderRadius: theme.radius.md, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, itemTop: { flexDirection: 'row', gap: theme.spacing.md }, hover: { borderColor: theme.colors.accent }, thumb: { width: 64, height: 89, borderRadius: theme.radius.sm }, thumbVazio: { backgroundColor: theme.colors.background }, centro: { alignItems: 'center', justifyContent: 'center' }, formatoSigla: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold }, nome: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, muted: { color: theme.colors.textMuted, fontSize: theme.typography.small }, preco: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold, marginTop: 2 }, obs: { color: theme.colors.text, fontStyle: 'italic' }, status: { fontWeight: theme.typography.weight.bold, marginTop: 2, fontSize: theme.typography.small }, edicao: { gap: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border, paddingTop: theme.spacing.sm }, erro: { color: theme.colors.danger }, remover: { minHeight: 44, justifyContent: 'center' }, removerTexto: { color: theme.colors.danger, fontWeight: theme.typography.weight.bold } });
+const styles = StyleSheet.create({ wrap: { flex: 1 }, wide: { paddingLeft: 118 }, abas: { flexDirection: 'row', gap: theme.spacing.sm, paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.lg, maxWidth: 960, width: '100%', alignSelf: 'center' }, page: { flexGrow: 1, maxWidth: 960, alignSelf: 'center', width: '100%', padding: theme.spacing.lg, gap: theme.spacing.md }, box: { gap: theme.spacing.sm, padding: theme.spacing.lg, borderRadius: theme.radius.md, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, boxTitle: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, input: { minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.input, paddingHorizontal: theme.spacing.md }, linha: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: theme.spacing.sm }, flex: { flex: 1 }, secundario: { minHeight: 48, justifyContent: 'center', paddingHorizontal: theme.spacing.lg, borderRadius: theme.radius.sm, borderWidth: 1, borderColor: theme.colors.border }, secundarioTexto: { color: theme.colors.text, fontWeight: theme.typography.weight.bold }, item: { gap: theme.spacing.sm, padding: theme.spacing.md, borderRadius: theme.radius.md, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, itemTop: { flexDirection: 'row', gap: theme.spacing.md }, hover: { borderColor: theme.colors.accent }, thumb: { width: 64, height: 89, borderRadius: theme.radius.sm }, thumbVazio: { backgroundColor: theme.colors.background }, centro: { alignItems: 'center', justifyContent: 'center' }, formatoSigla: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold }, nome: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold }, muted: { color: theme.colors.textMuted, fontSize: theme.typography.small }, preco: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold, marginTop: 2 }, obs: { color: theme.colors.text, fontStyle: 'italic' }, status: { fontWeight: theme.typography.weight.bold, marginTop: 2, fontSize: theme.typography.small }, edicao: { gap: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.border, paddingTop: theme.spacing.sm }, erro: { color: theme.colors.danger }, remover: { minHeight: 44, justifyContent: 'center' }, removerTexto: { color: theme.colors.danger, fontWeight: theme.typography.weight.bold } });

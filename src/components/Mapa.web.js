@@ -1,4 +1,5 @@
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Tipografia';
 import { formatarDistancia } from '../services/lojas';
 import { theme } from '../theme';
 

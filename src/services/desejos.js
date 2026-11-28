@@ -10,7 +10,7 @@ export const PRIORIDADES = [
 export const listarDesejos = () => apiRequest('/desejos');
 
 // carta: { scryfall_id } ou { nome } (o backend busca no Scryfall e aceita erros de digitação).
-// extras: { prioridade?, preco_maximo_usd?, observacao? }
+// extras: { prioridade?, preco_maximo_brl?, observacao? }
 export const adicionarDesejo = (carta, extras = {}) =>
   apiRequest('/desejos', { method: 'POST', body: { ...carta, ...extras } });
 

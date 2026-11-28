@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from './Tipografia';
 import MapView, { Marker } from 'react-native-maps';
 import { formatarDistancia } from '../services/lojas';
 import { theme } from '../theme';

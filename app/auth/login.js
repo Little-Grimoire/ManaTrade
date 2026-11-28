@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import Head from 'expo-router/head';
 import { Link, useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../../src/components/Tipografia';
 import BotaoPrimario from '../../src/components/BotaoPrimario';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { theme } from '../../src/theme';
@@ -45,4 +46,4 @@ export default function Login() {
   );
 }
 
-const styles = StyleSheet.create({ page: { flexGrow: 1, minHeight: '100%', alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg, backgroundColor: theme.colors.background }, card: { width: '100%', maxWidth: 480, gap: theme.spacing.md, padding: theme.spacing.xxl, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, brand: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold }, title: { color: theme.colors.text, fontSize: theme.typography.title, fontWeight: theme.typography.weight.bold, marginBottom: theme.spacing.sm }, label: { color: theme.colors.textMuted, fontSize: theme.typography.small }, input: { minHeight: 48, color: theme.colors.text, borderRadius: theme.radius.sm, borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.background, paddingHorizontal: theme.spacing.md }, error: { color: theme.colors.danger }, link: { minHeight: 44, color: theme.colors.accent, textAlign: 'center', paddingTop: theme.spacing.md } });
+const styles = StyleSheet.create({ page: { flexGrow: 1, minHeight: '100%', alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg, backgroundColor: theme.colors.background }, card: { width: '100%', maxWidth: 480, gap: theme.spacing.md, padding: theme.spacing.xxl, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, brand: { color: theme.colors.accent, fontWeight: theme.typography.weight.bold }, title: { color: theme.colors.text, fontSize: theme.typography.title, fontWeight: theme.typography.weight.bold, marginBottom: theme.spacing.sm }, label: { color: theme.colors.textMuted, fontSize: theme.typography.small }, input: { minHeight: 48, color: theme.colors.text, borderRadius: theme.radius.sm, borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.input, paddingHorizontal: theme.spacing.md }, error: { color: theme.colors.danger }, link: { minHeight: 44, color: theme.colors.accent, fontFamily: theme.fonts.bodyMedium, fontSize: theme.typography.body, textAlign: 'center', paddingTop: theme.spacing.md } });

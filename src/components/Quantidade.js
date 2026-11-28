@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Tipografia';
 import { theme } from '../theme';
 
 // Controle "− n +". Com valor 1, o "−" chama onRemover (se informado).

@@ -1,7 +1,8 @@
 import Head from 'expo-router/head';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../../src/components/Tipografia';
 import Cabecalho from '../../src/components/Cabecalho';
 import BotaoPrimario from '../../src/components/BotaoPrimario';
 import ChipFiltro from '../../src/components/ChipFiltro';

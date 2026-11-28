@@ -1,7 +1,8 @@
 import Head from 'expo-router/head';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../src/components/Tipografia';
 import Cabecalho from '../src/components/Cabecalho';
 import BotaoPrimario from '../src/components/BotaoPrimario';
 import BotaoSecundario from '../src/components/BotaoSecundario';
@@ -15,8 +16,8 @@ import {
   ACOES_DA_LOJA, ENCERRADAS, ETAPAS, ROTULOS, atualizarConsignacao, excluirConsignacao, listarConsignacoes,
 } from '../src/services/consignacoes';
 import { theme } from '../src/theme';
+import { reais } from '../src/services/moeda';
 
-const reais = (v) => (v == null ? '–' : `R$ ${Number(v).toFixed(2).replace('.', ',')}`);
 
 // RF07. Jogador: acompanha, edita o preço enquanto pendente, cancela e exclui.
 // Loja: aceita, recusa, coloca à venda, registra venda ou devolução. Admin: consulta e exclui.
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
   valor: { color: theme.colors.text, fontWeight: theme.typography.weight.bold },
   acoes: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm, alignItems: 'center' },
   acoesLoja: { gap: theme.spacing.sm },
-  input: { flex: 1, minWidth: 120, minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.background, paddingHorizontal: theme.spacing.md },
+  input: { flex: 1, minWidth: 120, minHeight: 48, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, backgroundColor: theme.colors.input, paddingHorizontal: theme.spacing.md },
   ok: { color: theme.colors.greenEnd },
   erro: { color: theme.colors.danger },
 });

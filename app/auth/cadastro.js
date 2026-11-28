@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import Head from 'expo-router/head';
 import { Link, useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '../../src/components/Tipografia';
 import BotaoPrimario from '../../src/components/BotaoPrimario';
 import ChipFiltro from '../../src/components/ChipFiltro';
 import { useAuth } from '../../src/contexts/AuthContext';
@@ -103,4 +104,4 @@ export default function Cadastro() {
   );
 }
 
-const styles = StyleSheet.create({ page: { flexGrow: 1, alignItems: 'center', padding: theme.spacing.lg, backgroundColor: theme.colors.background }, card: { width: '100%', maxWidth: 480, gap: theme.spacing.md, padding: theme.spacing.xl, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.lg }, title: { color: theme.colors.text, fontSize: theme.typography.title, fontWeight: theme.typography.weight.bold }, section: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold, marginTop: theme.spacing.sm }, label: { color: theme.colors.textMuted, fontSize: theme.typography.small, marginBottom: theme.spacing.xs }, help: { color: theme.colors.textMuted, fontSize: theme.typography.small }, input: { width: '100%', minHeight: 48, color: theme.colors.text, paddingHorizontal: theme.spacing.md, borderRadius: theme.radius.sm, borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.background }, row: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }, error: { color: theme.colors.danger }, link: { minHeight: 44, color: theme.colors.accent, textAlign: 'center', paddingTop: theme.spacing.md } });
+const styles = StyleSheet.create({ page: { flexGrow: 1, alignItems: 'center', padding: theme.spacing.lg, backgroundColor: theme.colors.background }, card: { width: '100%', maxWidth: 480, gap: theme.spacing.md, padding: theme.spacing.xl, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.lg }, title: { color: theme.colors.text, fontSize: theme.typography.title, fontWeight: theme.typography.weight.bold }, section: { color: theme.colors.text, fontSize: theme.typography.h3, fontWeight: theme.typography.weight.bold, marginTop: theme.spacing.sm }, label: { color: theme.colors.textMuted, fontSize: theme.typography.small, marginBottom: theme.spacing.xs }, help: { color: theme.colors.textMuted, fontSize: theme.typography.small }, input: { width: '100%', minHeight: 48, color: theme.colors.text, paddingHorizontal: theme.spacing.md, borderRadius: theme.radius.sm, borderWidth: 1, borderColor: theme.colors.border, backgroundColor: theme.colors.input }, row: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }, error: { color: theme.colors.danger }, link: { minHeight: 44, color: theme.colors.accent, fontFamily: theme.fonts.bodyMedium, fontSize: theme.typography.body, textAlign: 'center', paddingTop: theme.spacing.md } });
